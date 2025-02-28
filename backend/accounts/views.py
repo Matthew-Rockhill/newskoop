@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate, get_user_model
-from .models import RadioStation
+from .models import RadioStation, CustomUser
 from .serializers import (
     UserSerializer, 
     RadioStationSerializer,
@@ -24,29 +24,40 @@ class LoginView(APIView):
     """
     permission_classes = [permissions.AllowAny]
     
-    def post(self, request):
-        email = request.data.get('email')
-        password = request.data.get('password')
-        
-        if not email or not password:
-            logger.warning(f"Login attempt with missing credentials")
-            return Response({'error': 'Please provide both email and password'}, 
-                            status=status.HTTP_400_BAD_REQUEST)
-        
-        user = authenticate(request, username=email, password=password)
-        
-        if user:
-            refresh = RefreshToken.for_user(user)
-            logger.info(f"User login successful: {user.email}")
-            return Response({
-                'user': UserSerializer(user).data,
-                'refresh': str(refresh),
-                'access': str(refresh.access_token)
-            })
-        
-        logger.warning(f"Failed login attempt for email: {email}")
-        return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+# In accounts/views.py, enhance the LoginView post method
 
+def post(self, request):
+    email = request.data.get('email')
+    password = request.data.get('password')
+    
+    # More detailed validation
+    errors = {}
+    if not email:
+        errors['email'] = 'Email is required'
+    if not password:
+        errors['password'] = 'Password is required'
+    
+    if errors:
+        logger.warning(f"Login attempt with missing credentials: {', '.join(errors.keys())}")
+        return Response({'errors': errors}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = authenticate(request, username=email, password=password)
+    
+    if user:
+        if not user.is_active:
+            logger.warning(f"Login attempt by inactive user: {email}")
+            return Response({'error': 'Account is inactive'}, status=status.HTTP_403_FORBIDDEN)
+        
+        refresh = RefreshToken.for_user(user)
+        logger.info(f"User login successful: {user.email}")
+        return Response({
+            'user': UserSerializer(user).data,
+            'refresh': str(refresh),
+            'access': str(refresh.access_token)
+        })
+    
+    logger.warning(f"Failed login attempt for email: {email}")
+    return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
 class LogoutView(APIView):
     """
@@ -142,12 +153,15 @@ class RadioStationViewSet(viewsets.ModelViewSet):
             # Find the user
             user = station.users.get(id=user_id)
             
-            # Reset any existing primary contacts
-            station.users.filter(is_primary_contact=True).update(is_primary_contact=False)
-            
-            # Set this user as primary
-            user.is_primary_contact = True
-            user.save()
+            # Use transaction to ensure atomicity
+            from django.db import transaction
+            with transaction.atomic():
+                # Reset any existing primary contacts
+                station.users.filter(is_primary_contact=True).update(is_primary_contact=False)
+                
+                # Set this user as primary
+                user.is_primary_contact = True
+                user.save()
             
             return Response({"success": "Primary contact updated"})
         except CustomUser.DoesNotExist:

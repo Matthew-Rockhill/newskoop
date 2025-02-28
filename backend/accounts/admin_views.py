@@ -1,8 +1,9 @@
 # accounts/admin_views.py
 from rest_framework import viewsets, status, permissions
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from .models import RadioStation
 from .serializers import (
     UserSerializer, 
     StaffUserCreateSerializer,
@@ -13,6 +14,21 @@ from .serializers import (
 from .views import AdminPermission
 
 User = get_user_model()
+
+@api_view(['GET'])
+@permission_classes([AdminPermission])
+def system_stats(request):
+    """Provide system statistics for admin dashboard"""
+    stats = {
+        'total_users': User.objects.count(),
+        'active_users': User.objects.filter(is_active=True).count(),
+        'staff_users': User.objects.filter(user_type=User.UserType.STAFF).count(),
+        'radio_users': User.objects.filter(user_type=User.UserType.RADIO).count(),
+        'active_stations': RadioStation.objects.filter(is_active=True).count(),
+        'total_stations': RadioStation.objects.count(),
+        # Add other relevant stats
+    }
+    return Response(stats)
 
 class AdminUserViewSet(viewsets.ModelViewSet):
     """ViewSet for managing all users via admin interface"""
@@ -60,6 +76,28 @@ class AdminUserViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(staff_role=staff_role.upper())
             
         return queryset
+    
+    def list(self, request, *args, **kwargs):
+        """Override list method to include pagination and total count info"""
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Get total count before pagination
+        total_count = queryset.count()
+        
+        # Use pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            # Add total count to response
+            response.data['total_count'] = total_count
+            return response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'results': serializer.data,
+            'total_count': total_count
+        })
     
     @action(detail=True, methods=['post'])
     def reset_password(self, request, pk=None):

@@ -11,9 +11,9 @@ class RadioStationSerializer(serializers.ModelSerializer):
     class Meta:
         model = RadioStation
         fields = [
-            'id', 'name', 'code', 'description', 'address', 
+            'id', 'name', 'description', 'province', 
             'contact_number', 'contact_email', 'website', 'is_active',
-            'access_general', 'access_christian', 'access_muslim',
+            'religion_access',  
             'access_english', 'access_afrikaans', 'access_xhosa',
             'access_news_stories', 'access_news_bulletins', 
             'access_sport', 'access_finance', 'access_specialty',

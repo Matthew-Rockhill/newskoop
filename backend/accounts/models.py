@@ -31,11 +31,32 @@ class CustomUserManager(BaseUserManager):
 
 class RadioStation(models.Model):
     """Model for radio stations that use the Newskoop platform"""
+    
+    # Province choices for South Africa
+    class Province(models.TextChoices):
+        EASTERN_CAPE = 'EASTERN_CAPE', 'Eastern Cape'
+        FREE_STATE = 'FREE_STATE', 'Free State'
+        GAUTENG = 'GAUTENG', 'Gauteng'
+        KWAZULU_NATAL = 'KWAZULU_NATAL', 'KwaZulu-Natal'
+        LIMPOPO = 'LIMPOPO', 'Limpopo'
+        MPUMALANGA = 'MPUMALANGA', 'Mpumalanga'
+        NORTHERN_CAPE = 'NORTHERN_CAPE', 'Northern Cape'
+        NORTH_WEST = 'NORTH_WEST', 'North West'
+        WESTERN_CAPE = 'WESTERN_CAPE', 'Western Cape'
+        NATIONAL = 'NATIONAL', 'National' # For stations with national coverage
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    code = models.CharField(max_length=20, unique=True)
     description = models.TextField(blank=True)
-    address = models.TextField(blank=True)
+    
+    # Add province field
+    province = models.CharField(
+        max_length=20,
+        choices=Province.choices,
+        default=Province.GAUTENG,
+        help_text="Province where the radio station is located"
+    )
+    
     contact_number = models.CharField(max_length=20, blank=True)
     contact_email = models.EmailField(blank=True)
     website = models.URLField(blank=True)
@@ -43,10 +64,20 @@ class RadioStation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    # Content access fields
-    access_general = models.BooleanField(default=True, help_text="Access to general content")
-    access_christian = models.BooleanField(default=False, help_text="Access to Christian content")
-    access_muslim = models.BooleanField(default=False, help_text="Access to Muslim content")
+    # Religion access fields
+    RELIGION_CHOICES = [
+        ('GENERAL_ONLY', 'General Only'),
+        ('GENERAL_PLUS_CHRISTIAN', 'General + Christian'),
+        ('GENERAL_PLUS_MUSLIM', 'General + Muslim'),
+    ]
+    
+    religion_access = models.CharField(
+        max_length=25,
+        choices=RELIGION_CHOICES,
+        default='GENERAL_ONLY',
+        help_text="Determines if a station gets additional religious content. Options are: General Only, General + Christian, or General + Muslim."
+    )
+
     
     # Language access
     access_english = models.BooleanField(default=True, help_text="Access to English content")
@@ -59,6 +90,19 @@ class RadioStation(models.Model):
     access_sport = models.BooleanField(default=False, help_text="Access to Sport content")
     access_finance = models.BooleanField(default=False, help_text="Access to Finance content")
     access_specialty = models.BooleanField(default=False, help_text="Access to Specialty content")
+    
+    def save(self, *args, **kwargs):
+        # Check if the station is being deactivated
+        if not self.is_active and self.pk:
+            # Get the original instance from the database
+            original = RadioStation.objects.get(pk=self.pk)
+            if original.is_active:
+                from django.db import transaction
+                with transaction.atomic():
+                    #Deactivate all users associated with this station
+                    self.users.update(is_active=False)
+        
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return self.name
