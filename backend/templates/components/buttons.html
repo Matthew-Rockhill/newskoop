@@ -1,0 +1,69 @@
+{% comment %}
+Components for buttons in various styles and sizes
+Usage: {% include "components/buttons.html" with type="primary" text="Button Text" %}
+{% endcomment %}
+
+{% if type == "primary" %}
+<button type="{% if button_type %}{{ button_type }}{% else %}button{% endif %}" 
+        class="btn btn-primary {% if size %}btn-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}" 
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if icon %}<span class="btn-icon">{{ icon|safe }}</span>{% endif %}
+    {{ text }}
+</button>
+{% elif type == "secondary" %}
+<button type="{% if button_type %}{{ button_type }}{% else %}button{% endif %}" 
+        class="btn btn-secondary {% if size %}btn-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}" 
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if icon %}<span class="btn-icon">{{ icon|safe }}</span>{% endif %}
+    {{ text }}
+</button>
+{% elif type == "outline" %}
+<button type="{% if button_type %}{{ button_type }}{% else %}button{% endif %}" 
+        class="btn btn-outline {% if size %}btn-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}" 
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if icon %}<span class="btn-icon">{{ icon|safe }}</span>{% endif %}
+    {{ text }}
+</button>
+{% elif type == "danger" %}
+<button type="{% if button_type %}{{ button_type }}{% else %}button{% endif %}" 
+        class="btn btn-danger {% if size %}btn-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}" 
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if icon %}<span class="btn-icon">{{ icon|safe }}</span>{% endif %}
+    {{ text }}
+</button>
+{% elif type == "link" %}
+<a href="{{ url }}" 
+   class="btn {% if style %}btn-{{ style }}{% else %}btn-outline{% endif %} {% if size %}btn-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}" 
+   {% if id %}id="{{ id }}"{% endif %}
+   {% if disabled %}disabled{% endif %}
+   {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if icon %}<span class="btn-icon">{{ icon|safe }}</span>{% endif %}
+    {{ text }}
+</a>
+{% elif type == "icon" %}
+<button type="{% if button_type %}{{ button_type }}{% else %}button{% endif %}" 
+        class="btn btn-icon {% if style %}btn-{{ style }}{% else %}btn-outline{% endif %} {% if size %}btn-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}" 
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if tooltip %}title="{{ tooltip }}"{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {{ icon|safe }}
+</button>
+{% else %}
+<button type="{% if button_type %}{{ button_type }}{% else %}button{% endif %}" 
+        class="btn {% if class %}{{ class }}{% endif %}" 
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled{% endif %}
+        {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if icon %}<span class="btn-icon">{{ icon|safe }}</span>{% endif %}
+    {{ text }}
+</button>
+{% endif %}

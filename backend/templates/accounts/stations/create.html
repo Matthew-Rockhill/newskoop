@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add Radio Station - Newskoop{% endblock %}
+
+{% block page_title %}Add Radio Station{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="station-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save Station
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Station Information</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="station-form" method="post" action="{% url 'station_create' %}">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Basic Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="name" class="form-label">Station Name <span class="required">*</span></label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="province" class="form-label">Province <span class="required">*</span></label>
+                        <select id="province" name="province" class="form-control" required>
+                            <option value="" disabled selected>Select province</option>
+                            {% for code, name in provinces %}
+                            <option value="{{ code }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_active" name="is_active" checked>
+                            <label for="is_active">Active</label>
+                        </div>
+                        <small class="form-text">Inactive stations (and their users) will not have access to the platform.</small>
+                    </div>
+                </div>
+                
+                <!-- Contact Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Contact Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="contact_email" class="form-label">Contact Email</label>
+                        <input type="email" id="contact_email" name="contact_email" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact_number" class="form-label">Contact Phone</label>
+                        <input type="tel" id="contact_number" name="contact_number" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="website" class="form-label">Website</label>
+                        <input type="url" id="website" name="website" class="form-control" placeholder="https://">
+                    </div>
+                </div>
+
+                <!-- Add this new section to create.html after the contact information section -->
+                <div class="form-section">
+                    <h3 class="section-title">Primary Contact</h3>
+                    <p class="section-info">Create a user account for the primary contact of this station.</p>
+                    
+                    <div class="form-group">
+                        <label for="primary_contact_email" class="form-label">Email Address</label>
+                        <input type="email" id="primary_contact_email" name="primary_contact_email" class="form-control">
+                        <small class="form-text">This will be used as the login username for the primary contact.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="primary_contact_password" class="form-label">Password</label>
+                        <input type="password" id="primary_contact_password" name="primary_contact_password" class="form-control">
+                        <small class="form-text">Minimum 8 characters.</small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="primary_contact_first_name" class="form-label">First Name</label>
+                            <input type="text" id="primary_contact_first_name" name="primary_contact_first_name" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="primary_contact_last_name" class="form-label">Last Name</label>
+                            <input type="text" id="primary_contact_last_name" name="primary_contact_last_name" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="primary_contact_mobile" class="form-label">Mobile Number</label>
+                        <input type="tel" id="primary_contact_mobile" name="primary_contact_mobile" class="form-control">
+                    </div>
+                    
+                    <div class="form-note">
+                        <p>If you don't want to create a primary contact user now, you can leave these fields empty and add users later.</p>
+                    </div>
+                </div>
+                
+                <!-- Access Settings Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Access Settings</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Religion Access <span class="required">*</span></label>
+                        <div class="radio-group">
+                            {% for value, label in religion_choices %}
+                            <div class="radio-item">
+                                <input type="radio" id="religion_{{ value }}" name="religion_access" value="{{ value }}" 
+                                       {% if value == 'GENERAL_ONLY' %}checked{% endif %} required>
+                                <label for="religion_{{ value }}">{{ label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Language Access <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_english" name="access_english" checked>
+                                <label for="access_english">English</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_afrikaans" name="access_afrikaans">
+                                <label for="access_afrikaans">Afrikaans</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_xhosa" name="access_xhosa">
+                                <label for="access_xhosa">Xhosa</label>
+                            </div>
+                        </div>
+                        <small class="form-text">Select at least one language.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Content Categories</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_news_stories" name="access_news_stories">
+                                <label for="access_news_stories">News Stories</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_news_bulletins" name="access_news_bulletins">
+                                <label for="access_news_bulletins">News Bulletins</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_sport" name="access_sport">
+                                <label for="access_sport">Sport</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_finance" name="access_finance">
+                                <label for="access_finance">Finance</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_specialty" name="access_specialty">
+                                <label for="access_specialty">Specialty Content</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-sections {
+        display: grid;
+        gap: 32px;
+    }
+    
+    .form-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 24px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--color-text);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .radio-group,
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .radio-item,
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    input[type="radio"],
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+
+    .form-note {
+        margin-top: 16px;
+        padding: 12px 16px;
+        background-color: rgba(111, 179, 22, 0.1);
+        border-radius: var(--border-radius);
+        font-size: 0.875rem;
+    }
+    
+    .form-note p {
+        margin: 0;
+        color: var(--color-text-light);
+    }
+    
+    .section-info {
+        margin-bottom: 16px;
+        color: var(--color-text-light);
+    }
+    
+    @media (max-width: 768px) {
+        .form-sections {
+            gap: 24px;
+        }
+        
+        .form-section {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.getElementById('station-form');
+        
+        form.addEventListener('submit', function(e) {
+            // Validate at least one language is selected
+            const englishCheck = document.getElementById('access_english');
+            const afrikaansCheck = document.getElementById('access_afrikaans');
+            const xhosaCheck = document.getElementById('access_xhosa');
+            
+            if (!englishCheck.checked && !afrikaansCheck.checked && !xhosaCheck.checked) {
+                e.preventDefault();
+                alert('Please select at least one language.');
+                return;
+            }
+        });
+        
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}

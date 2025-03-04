@@ -1,0 +1,201 @@
+{% comment %}
+Form components for common input types
+Usage:
+{% include "components/forms.html" with type="text" name="username" label="Username" %}
+{% endcomment %}
+
+{% if type == "text" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <input type="text" id="{{ name }}" name="{{ name }}" 
+           class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+           value="{{ value|default:'' }}" 
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "email" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <input type="email" id="{{ name }}" name="{{ name }}" 
+           class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+           value="{{ value|default:'' }}" 
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "password" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <input type="password" id="{{ name }}" name="{{ name }}" 
+           class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+           {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "textarea" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <textarea id="{{ name }}" name="{{ name }}" 
+              class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+              {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+              {% if rows %}rows="{{ rows }}"{% else %}rows="3"{% endif %}
+              {% if required %}required{% endif %}
+              {% if disabled %}disabled{% endif %}
+              {% if attrs %}{{ attrs|safe }}{% endif %}>{{ value|default:'' }}</textarea>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "select" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <select id="{{ name }}" name="{{ name }}" 
+            class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+            {% if required %}required{% endif %}
+            {% if disabled %}disabled{% endif %}
+            {% if multiple %}multiple{% endif %}
+            {% if attrs %}{{ attrs|safe }}{% endif %}>
+        {% if placeholder %}
+        <option value="" {% if not value %}selected{% endif %}>{{ placeholder }}</option>
+        {% endif %}
+        {% for option in options %}
+            <option value="{{ option.value }}" 
+                {% if value == option.value %}selected{% endif %}
+                {% if option.disabled %}disabled{% endif %}>
+                {{ option.label }}
+            </option>
+        {% endfor %}
+    </select>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "checkbox" %}
+<div class="form-group form-check">
+    <input type="checkbox" id="{{ name }}" name="{{ name }}" 
+           class="form-check-input {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+           {% if value %}checked{% endif %}
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if attrs %}{{ attrs|safe }}{% endif %}>
+    <label for="{{ name }}" class="form-check-label">
+        {{ label }}{% if required %} <span class="required">*</span>{% endif %}
+    </label>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "radio" %}
+<div class="form-group">
+    <label class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <div class="radio-group">
+        {% for option in options %}
+        <div class="form-check">
+            <input type="radio" id="{{ name }}_{{ option.value }}" name="{{ name }}" value="{{ option.value }}" 
+                   class="form-check-input {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+                   {% if value == option.value %}checked{% endif %}
+                   {% if required %}required{% endif %}
+                   {% if disabled or option.disabled %}disabled{% endif %}
+                   {% if attrs %}{{ attrs|safe }}{% endif %}>
+            <label for="{{ name }}_{{ option.value }}" class="form-check-label">{{ option.label }}</label>
+        </div>
+        {% endfor %}
+    </div>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "date" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <input type="date" id="{{ name }}" name="{{ name }}" 
+           class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+           value="{{ value|default:'' }}" 
+           {% if min %}min="{{ min }}"{% endif %}
+           {% if max %}max="{{ max }}"{% endif %}
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "file" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <input type="file" id="{{ name }}" name="{{ name }}" 
+           class="form-control-file {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %}" 
+           {% if accept %}accept="{{ accept }}"{% endif %}
+           {% if multiple %}multiple{% endif %}
+           {% if required %}required{% endif %}
+           {% if disabled %}disabled{% endif %}
+           {% if attrs %}{{ attrs|safe }}{% endif %}>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+
+{% elif type == "rich-text" %}
+<div class="form-group">
+    <label for="{{ name }}" class="form-label">{{ label }}{% if required %} <span class="required">*</span>{% endif %}</label>
+    <textarea id="{{ name }}" name="{{ name }}" 
+              class="form-control {% if errors %}is-invalid{% endif %} {% if class %}{{ class }}{% endif %} rich-text-editor" 
+              {% if required %}required{% endif %}
+              {% if disabled %}disabled{% endif %}
+              {% if attrs %}{{ attrs|safe }}{% endif %}>{{ value|default:'' }}</textarea>
+    {% if help_text %}
+    <small class="form-text">{{ help_text }}</small>
+    {% endif %}
+    {% if errors %}
+    <div class="form-error">{{ errors }}</div>
+    {% endif %}
+</div>
+{% endif %}

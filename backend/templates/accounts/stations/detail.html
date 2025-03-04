@@ -1,0 +1,515 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ station.name }} - Newskoop{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle setting primary contact
+        const setPrimaryButtons = document.querySelectorAll('.set-primary-btn');
+        
+        setPrimaryButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const stationId = this.getAttribute('data-station-id');
+                const userId = this.getAttribute('data-user-id');
+                
+                if (confirm('Are you sure you want to set this user as the primary contact?')) {
+                    setPrimaryContact(stationId, userId);
+                }
+            });
+        });
+        
+        function setPrimaryContact(stationId, userId) {
+            // Create CSRF token header
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/accounts/stations/${stationId}/users/${userId}/set-primary/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ user_id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block page_title %}{{ station.name }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'station_edit' station_id=station.id %}" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Edit Station
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="station-detail">
+    <div class="row">
+        <!-- Station details -->
+        <div class="column">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Station Details</h2>
+                    <div class="card-actions">
+                        {% if station.is_active %}
+                        <span class="status-badge status-active">Active</span>
+                        {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div class="info-group">
+                        <h3 class="info-title">General Information</h3>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Station Name:</div>
+                            <div class="info-value">{{ station.name }}</div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Province:</div>
+                            <div class="info-value">{{ station.get_province_display }}</div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Description:</div>
+                            <div class="info-value">{{ station.description|default:"No description provided." }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <h3 class="info-title">Contact Information</h3>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Contact Email:</div>
+                            <div class="info-value">
+                                {% if station.contact_email %}
+                                <a href="mailto:{{ station.contact_email }}">{{ station.contact_email }}</a>
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Contact Phone:</div>
+                            <div class="info-value">
+                                {% if station.contact_number %}
+                                {{ station.contact_number }}
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Website:</div>
+                            <div class="info-value">
+                                {% if station.website %}
+                                <a href="{{ station.website }}" target="_blank">{{ station.website }}</a>
+                                {% else %}
+                                <span class="text-muted">Not provided</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Primary Contact:</div>
+                            <div class="info-value">
+                                {% for user in users %}
+                                    {% if user.is_primary_contact %}
+                                    {{ user.get_full_name }} ({{ user.email }})
+                                    {% endif %}
+                                {% empty %}
+                                <span class="text-muted">No primary contact assigned</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Content Access -->
+            <div class="card mt-20">
+                <div class="card-header">
+                    <h2 class="card-title">Content Access Settings</h2>
+                </div>
+                
+                <div class="card-content">
+                    <div class="access-grid">
+                        <div class="access-section">
+                            <h3 class="access-title">Religion Access</h3>
+                            <div class="access-value">
+                                {{ station.get_religion_access_display }}
+                            </div>
+                        </div>
+                        
+                        <div class="access-section">
+                            <h3 class="access-title">Language Access</h3>
+                            <div class="access-value">
+                                <div class="access-tags">
+                                    {% if station.access_english %}
+                                    <span class="access-tag">English</span>
+                                    {% endif %}
+                                    
+                                    {% if station.access_afrikaans %}
+                                    <span class="access-tag">Afrikaans</span>
+                                    {% endif %}
+                                    
+                                    {% if station.access_xhosa %}
+                                    <span class="access-tag">Xhosa</span>
+                                    {% endif %}
+                                    
+                                    {% if not station.access_english and not station.access_afrikaans and not station.access_xhosa %}
+                                    <span class="text-muted">No language access</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="access-section">
+                            <h3 class="access-title">Content Categories</h3>
+                            <div class="access-value">
+                                <div class="access-tags">
+                                    {% if station.access_news_stories %}
+                                    <span class="access-tag">News Stories</span>
+                                    {% endif %}
+                                    
+                                    {% if station.access_news_bulletins %}
+                                    <span class="access-tag">News Bulletins</span>
+                                    {% endif %}
+                                    
+                                    {% if station.access_sport %}
+                                    <span class="access-tag">Sport</span>
+                                    {% endif %}
+                                    
+                                    {% if station.access_finance %}
+                                    <span class="access-tag">Finance</span>
+                                    {% endif %}
+                                    
+                                    {% if station.access_specialty %}
+                                    <span class="access-tag">Specialty Content</span>
+                                    {% endif %}
+                                    
+                                    {% if not station.access_news_stories and not station.access_news_bulletins and not station.access_sport and not station.access_finance and not station.access_specialty %}
+                                    <span class="text-muted">No content access</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Users -->
+        <div class="column">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Station Users</h2>
+                    <div class="card-actions">
+                        <a href="{% url 'station_add_user' station_id=station.id %}" class="btn btn-sm btn-outline">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Add User
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-content">
+                    <div class="users-list">
+                        {% for user in users %}
+                        <div class="user-item {% if not user.is_active %}user-inactive{% endif %}">
+                            <div class="user-info">
+                                <div class="user-primary">
+                                    <span class="user-name">{{ user.get_full_name }}</span>
+                                    <span class="user-email">{{ user.email }}</span>
+                                </div>
+                                
+                                <div class="user-meta">
+                                    {% if user.is_primary_contact %}
+                                    <span class="user-badge user-primary-badge">Primary Contact</span>
+                                    {% endif %}
+                                    
+                                    {% if not user.is_active %}
+                                    <span class="user-badge user-inactive-badge">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="user-actions">
+                                {% if not user.is_primary_contact %}
+                                <button type="button" class="btn btn-sm btn-outline set-primary-btn" 
+                                        data-station-id="{{ station.id }}" 
+                                        data-user-id="{{ user.id }}"
+                                        title="Set as Primary Contact">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Set Primary
+                                </button>
+                                {% endif %}
+                                
+                                <a href="{% url 'edit_user' user_id=user.id %}" class="btn btn-sm btn-icon btn-outline" title="Edit User">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-users">
+                            <p>No users assigned to this station.</p>
+                            <a href="{% url 'station_add_user' station_id=station.id %}" class="btn btn-primary mt-3">Add User</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Information -->
+            <div class="card mt-20">
+                <div class="card-header">
+                    <h2 class="card-title">System Information</h2>
+                </div>
+                
+                <div class="card-content">
+                    <div class="info-row">
+                        <div class="info-label">Created On:</div>
+                        <div class="info-value">{{ station.created_at|date:"F j, Y" }}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Last Updated:</div>
+                        <div class="info-value">{{ station.updated_at|date:"F j, Y" }}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Station ID:</div>
+                        <div class="info-value">{{ station.id }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .row {
+        display: flex;
+        gap: 24px;
+    }
+    
+    .column {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .mt-20 {
+        margin-top: 20px;
+    }
+    
+    .info-group {
+        margin-bottom: 24px;
+    }
+    
+    .info-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--color-text);
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .info-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .info-label {
+        width: 140px;
+        font-weight: 500;
+        color: var(--color-text-light);
+    }
+    
+    .info-value {
+        flex: 1;
+        color: var(--color-text);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        font-size: 0.75rem;
+        border-radius: 12px;
+    }
+    
+    .status-active {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--color-success);
+    }
+    
+    .status-inactive {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--color-danger);
+    }
+    
+    .access-grid {
+        display: grid;
+        gap: 20px;
+    }
+    
+    .access-section {
+        margin-bottom: 16px;
+    }
+    
+    .access-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .access-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--color-text);
+    }
+    
+    .access-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .access-tag {
+        display: inline-block;
+        padding: 4px 10px;
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary-dark);
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    
+    .users-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .user-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+    }
+    
+    .user-inactive {
+        opacity: 0.7;
+    }
+    
+    .user-info {
+        min-width: 0;
+    }
+    
+    .user-primary {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .user-name {
+        font-weight: 500;
+    }
+    
+    .user-email {
+        font-size: 0.875rem;
+        color: var(--color-text-light);
+    }
+    
+    .user-meta {
+        display: flex;
+        gap: 8px;
+        margin-top: 4px;
+    }
+    
+    .user-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        border-radius: 3px;
+    }
+    
+    .user-primary-badge {
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary-dark);
+    }
+    
+    .user-inactive-badge {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--color-danger);
+    }
+    
+    .user-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .empty-users {
+        text-align: center;
+        padding: 24px;
+        color: var(--color-text-light);
+    }
+    
+    .text-muted {
+        color: var(--color-text-light);
+    }
+    
+    @media (max-width: 768px) {
+        .row {
+            flex-direction: column;
+        }
+        
+        .user-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        
+        .user-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+</style>
+{% endblock %}

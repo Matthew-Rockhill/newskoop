@@ -1,0 +1,114 @@
+{% comment %}
+Alert component for notifications
+Usage:
+{% include "components/alerts.html" with type="success" message="Operation successful" %}
+{% endcomment %}
+
+<div class="alert alert-{{ type|default:'info' }} {% if dismissible %}alert-dismissible{% endif %} {% if class %}{{ class }}{% endif %}">
+    <div class="alert-content">
+        {% if icon %}
+        <div class="alert-icon">{{ icon|safe }}</div>
+        {% else %}
+        <div class="alert-icon">
+            {% if type == "success" %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M22 4L12 14.01l-3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {% elif type == "warning" %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 9v2M12 15h.01M21.73 18l-8-14a2 2 0 00-3.48 0l-8 14A2 2 0 004 21h16a2 2 0 001.73-3z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {% elif type == "danger" %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 9v2M12 15h.01M12 3a9 9 0 110 18 9 9 0 010-18z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {% else %}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 9v2M12 15h.01M12 3a9 9 0 110 18 9 9 0 010-18z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            {% endif %}
+        </div>
+        {% endif %}
+        <div class="alert-message">
+            {% if title %}<h4 class="alert-title">{{ title }}</h4>{% endif %}
+            <p>{{ message }}</p>
+        </div>
+    </div>
+    
+    {% if dismissible %}
+    <button type="button" class="alert-close" onclick="this.parentElement.style.display='none';">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
+    {% endif %}
+</div>
+
+<style>
+    .alert {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 16px;
+        border-radius: var(--border-radius);
+        margin-bottom: 16px;
+    }
+    
+    .alert-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .alert-icon {
+        flex-shrink: 0;
+    }
+    
+    .alert-title {
+        margin: 0 0 4px 0;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+    
+    .alert-message p {
+        margin: 0;
+    }
+    
+    .alert-success {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--color-success);
+        border-left: 4px solid var(--color-success);
+    }
+    
+    .alert-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: var(--color-warning);
+        border-left: 4px solid var(--color-warning);
+    }
+    
+    .alert-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--color-danger);
+        border-left: 4px solid var(--color-danger);
+    }
+    
+    .alert-info {
+        background-color: rgba(23, 162, 184, 0.1);
+        color: var(--color-info);
+        border-left: 4px solid var(--color-info);
+    }
+    
+    .alert-close {
+        background: none;
+        border: none;
+        color: currentColor;
+        cursor: pointer;
+        padding: 4px;
+        margin-left: 8px;
+    }
+    
+    .alert-close:hover {
+        opacity: 0.7;
+    }
+</style>

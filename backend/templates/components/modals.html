@@ -1,0 +1,180 @@
+{% comment %}
+Modal component for dialogs and popups
+Usage:
+{% include "components/modals.html" with id="example-modal" title="Modal Title" %}
+    Modal content goes here
+{% endinclude %}
+{% endcomment %}
+
+<div class="modal" id="{{ id }}">
+    <div class="modal-dialog {% if size %}modal-{{ size }}{% endif %} {% if class %}{{ class }}{% endif %}">
+        <div class="modal-content">
+            <div class="modal-header">
+                {% if title %}
+                <h3 class="modal-title">{{ title }}</h3>
+                {% endif %}
+                <button type="button" class="modal-close" data-dismiss="modal" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                {{ content|safe }}
+            </div>
+            {% if footer %}
+            <div class="modal-footer">
+                {{ footer|safe }}
+            </div>
+            {% elif show_footer %}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ cancel_text|default:"Cancel" }}</button>
+                {% if confirm_action %}
+                <button type="button" class="btn btn-primary" data-action="{{ confirm_action }}">{{ confirm_text|default:"Confirm" }}</button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        overflow: auto;
+        padding: 20px;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal.active {
+        display: flex;
+    }
+    
+    .modal-dialog {
+        max-width: 500px;
+        width: 100%;
+        margin: auto;
+        position: relative;
+    }
+    
+    .modal-sm {
+        max-width: 300px;
+    }
+    
+    .modal-lg {
+        max-width: 800px;
+    }
+    
+    .modal-xl {
+        max-width: 1140px;
+    }
+    
+    .modal-content {
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin: 0;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        color: var(--color-text-light);
+        cursor: pointer;
+        padding: 4px;
+        border-radius: var(--border-radius);
+    }
+    
+    .modal-close:hover {
+        background-color: var(--color-gray-100);
+    }
+    
+    .modal-body {
+        padding: 16px;
+        overflow-y: auto;
+        max-height: calc(100vh - 180px);
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 16px;
+        border-top: 1px solid var(--color-gray-200);
+    }
+    
+    body.modal-open {
+        overflow: hidden;
+    }
+</style>
+
+<script>
+    // Modal functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Close modal when clicking on X or cancel button
+        const closeButtons = document.querySelectorAll('[data-dismiss="modal"]');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modal = this.closest('.modal');
+                modal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            });
+        });
+        
+        // Close modal when clicking outside the modal content
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.classList.remove('modal-open');
+                }
+            });
+        });
+        
+        // Open modal when clicking on buttons with data-toggle="modal"
+        const modalTriggers = document.querySelectorAll('[data-toggle="modal"]');
+        modalTriggers.forEach(trigger => {
+            trigger.addEventListener('click', function() {
+                const modalId = this.dataset.target;
+                const modal = document.querySelector(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.classList.add('modal-open');
+                    
+                    // If button has data-id, pass it to the modal's confirm button
+                    if (this.dataset.id) {
+                        const confirmButton = modal.querySelector('[data-action]');
+                        if (confirmButton) {
+                            confirmButton.dataset.id = this.dataset.id;
+                        }
+                    }
+                }
+            });
+        });
+    });
+</script>

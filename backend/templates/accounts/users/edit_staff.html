@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit Staff User - Newskoop{% endblock %}
+
+{% block page_title %}Edit Staff User{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="user-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save Changes
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Edit Staff User</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="user-form" method="post" action="{% url 'edit_user' user_id=user.id %}">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Account Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Account Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{ user.email }}" disabled>
+                        <small class="form-text">Email address cannot be changed. Contact an administrator for assistance.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
+                            <label for="is_active">Active</label>
+                        </div>
+                        <small class="form-text">Inactive users will not be able to log in.</small>
+                    </div>
+                </div>
+                
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Personal Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control" value="{{ user.first_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" class="form-control" value="{{ user.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mobile_number" class="form-label">Mobile Number</label>
+                        <input type="tel" id="mobile_number" name="mobile_number" class="form-control" value="{{ user.mobile_number }}">
+                    </div>
+                </div>
+                
+                <!-- Staff Role Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Staff Role</h3>
+                    
+                    <div class="form-group">
+                        <label for="staff_role" class="form-label">Role <span class="required">*</span></label>
+                        <select id="staff_role" name="staff_role" class="form-control" required>
+                            <option value="" disabled>Select a role</option>
+                            {% for code, name in staff_roles %}
+                            <option value="{{ code }}" {% if user.staff_role == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="role-descriptions">
+                        <div class="role-description" data-role="SUPERADMIN">
+                            <h4>Super Admin</h4>
+                            <p>Full access to all features and administrative functions. Can manage all users, stations, and content.</p>
+                        </div>
+                        
+                        <div class="role-description" data-role="ADMIN">
+                            <h4>Admin</h4>
+                            <p>Administrative access to manage users, stations, and most content. Cannot modify system settings.</p>
+                        </div>
+                        
+                        <div class="role-description" data-role="EDITOR">
+                            <h4>Editor</h4>
+                            <p>Can create, edit, and publish content. Can manage content workflows but cannot manage users or stations.</p>
+                        </div>
+                        
+                        <div class="role-description" data-role="SUB_EDITOR">
+                            <h4>Sub Editor</h4>
+                            <p>Can create and edit content but requires approval for publishing. Limited administrative access.</p>
+                        </div>
+                        
+                        <div class="role-description" data-role="JOURNALIST">
+                            <h4>Journalist</h4>
+                            <p>Can create content but requires editorial approval. No administrative access.</p>
+                        </div>
+                        
+                        <div class="role-description" data-role="INTERN">
+                            <h4>Intern</h4>
+                            <p>Limited access to create draft content. All actions require approval. No administrative access.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete User Button -->
+<div class="danger-zone mt-4">
+    <h3 class="danger-title">Danger Zone</h3>
+    <p class="danger-text">Once you delete a user, there is no going back. Please be certain.</p>
+    <a href="{% url 'delete_user' user_id=user.id %}" class="btn btn-danger">Delete User</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-sections {
+        display: grid;
+        gap: 32px;
+    }
+    
+    .form-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 24px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--color-text);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .role-descriptions {
+        margin-top: 24px;
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .role-description {
+        display: none;
+        margin-bottom: 16px;
+    }
+    
+    .role-description h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--color-text);
+    }
+    
+    .role-description p {
+        margin: 0;
+        color: var(--color-text-light);
+    }
+    
+    .danger-zone {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid var(--color-danger);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        margin-top: 24px;
+    }
+    
+    .danger-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--color-danger);
+        margin-bottom: 8px;
+    }
+    
+    .danger-text {
+        color: var(--color-text);
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-sections {
+            gap: 24px;
+        }
+        
+        .form-section {
+            padding: 16px;
+        }
+        
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Show role description based on selection
+        const roleSelect = document.getElementById('staff_role');
+        const roleDescriptions = document.querySelectorAll('.role-description');
+        
+        // Function to update role description visibility
+        function updateRoleDescription() {
+            // Hide all descriptions
+            roleDescriptions.forEach(desc => {
+                desc.style.display = 'none';
+            });
+            
+            // Show selected role description
+            const selectedRole = roleSelect.value;
+            if (selectedRole) {
+                const selectedDesc = document.querySelector(`.role-description[data-role="${selectedRole}"]`);
+                if (selectedDesc) {
+                    selectedDesc.style.display = 'block';
+                }
+            }
+        }
+        
+        // Update on load
+        updateRoleDescription();
+        
+        // Update on change
+        roleSelect.addEventListener('change', updateRoleDescription);
+    });
+</script>
+{% endblock %}

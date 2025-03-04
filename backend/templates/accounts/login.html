@@ -1,0 +1,150 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Newskoop - Login</title>
+    
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    
+    <style>
+        body {
+            background-color: var(--color-gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .login-logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        
+        .login-card {
+            background-color: var(--color-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 32px;
+        }
+        
+        .login-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        
+        .login-form {
+            margin-bottom: 16px;
+        }
+        
+        .login-form .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .login-form .btn-primary {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--color-text-light);
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-logo">
+            <span class="login-logo-text">Newskoop</span>
+        </div>
+        
+        <div class="login-card">
+            <h1 class="login-title">Sign In</h1>
+            
+            {% if messages %}
+            <div class="alerts">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                    <button class="alert-close">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <form method="post" class="login-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                    {% if form.email.errors %}
+                    <div class="form-error">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                    {% if form.password.errors %}
+                    <div class="form-error">{{ form.password.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Sign In</button>
+            </form>
+            
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="login-footer">
+            &copy; {% now "Y" %} Newskoop. All rights reserved.
+        </div>
+    </div>
+    
+    <script>
+        // Handle alert dismissals
+        document.addEventListener('DOMContentLoaded', function() {
+            const alertCloseButtons = document.querySelectorAll('.alert-close');
+            alertCloseButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const alert = this.closest('.alert');
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.style.display = 'none';
+                    }, 300);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

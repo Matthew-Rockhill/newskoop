@@ -1,0 +1,311 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit {{ station.name }} - Newskoop{% endblock %}
+
+{% block page_title %}Edit {{ station.name }}{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="station-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save Changes
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Station Information</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="station-form" method="post" action="{% url 'station_edit' station_id=station.id %}">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Basic Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="name" class="form-label">Station Name <span class="required">*</span></label>
+                        <input type="text" id="name" name="name" class="form-control" value="{{ station.name }}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="province" class="form-label">Province <span class="required">*</span></label>
+                        <select id="province" name="province" class="form-control" required>
+                            <option value="" disabled>Select province</option>
+                            {% for code, name in provinces %}
+                            <option value="{{ code }}" {% if station.province == code %}selected{% endif %}>{{ name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="4">{{ station.description }}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_active" name="is_active" {% if station.is_active %}checked{% endif %}>
+                            <label for="is_active">Active</label>
+                        </div>
+                        <small class="form-text">Inactive stations (and their users) will not have access to the platform.</small>
+                    </div>
+                </div>
+                
+                <!-- Contact Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Contact Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="contact_email" class="form-label">Contact Email</label>
+                        <input type="email" id="contact_email" name="contact_email" class="form-control" value="{{ station.contact_email }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact_number" class="form-label">Contact Phone</label>
+                        <input type="tel" id="contact_number" name="contact_number" class="form-control" value="{{ station.contact_number }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="website" class="form-label">Website</label>
+                        <input type="url" id="website" name="website" class="form-control" placeholder="https://" value="{{ station.website }}">
+                    </div>
+                </div>
+                
+                <!-- Access Settings Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Access Settings</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Religion Access <span class="required">*</span></label>
+                        <div class="radio-group">
+                            {% for value, label in religion_choices %}
+                            <div class="radio-item">
+                                <input type="radio" id="religion_{{ value }}" name="religion_access" value="{{ value }}" 
+                                       {% if station.religion_access == value %}checked{% endif %} required>
+                                <label for="religion_{{ value }}">{{ label }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Language Access <span class="required">*</span></label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_english" name="access_english" {% if station.access_english %}checked{% endif %}>
+                                <label for="access_english">English</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_afrikaans" name="access_afrikaans" {% if station.access_afrikaans %}checked{% endif %}>
+                                <label for="access_afrikaans">Afrikaans</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_xhosa" name="access_xhosa" {% if station.access_xhosa %}checked{% endif %}>
+                                <label for="access_xhosa">Xhosa</label>
+                            </div>
+                        </div>
+                        <small class="form-text">Select at least one language.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Content Categories</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_news_stories" name="access_news_stories" {% if station.access_news_stories %}checked{% endif %}>
+                                <label for="access_news_stories">News Stories</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_news_bulletins" name="access_news_bulletins" {% if station.access_news_bulletins %}checked{% endif %}>
+                                <label for="access_news_bulletins">News Bulletins</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_sport" name="access_sport" {% if station.access_sport %}checked{% endif %}>
+                                <label for="access_sport">Sport</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_finance" name="access_finance" {% if station.access_finance %}checked{% endif %}>
+                                <label for="access_finance">Finance</label>
+                            </div>
+                            
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="access_specialty" name="access_specialty" {% if station.access_specialty %}checked{% endif %}>
+                                <label for="access_specialty">Specialty Content</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Station Button -->
+<div class="danger-zone mt-4">
+    <h3 class="danger-title">Danger Zone</h3>
+    <p class="danger-text">Once you delete a station, there is no going back. This action will also remove all associated users.</p>
+    <a href="{% url 'station_delete' station_id=station.id %}" class="btn btn-danger">Delete Station</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-sections {
+        display: grid;
+        gap: 32px;
+    }
+    
+    .form-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 24px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--color-text);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .radio-group,
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .radio-item,
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    input[type="radio"],
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .danger-zone {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid var(--color-danger);
+        border-radius: var(--border-radius);
+        padding: 24px;
+    }
+    
+    .danger-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--color-danger);
+        margin-bottom: 8px;
+    }
+    
+    .danger-text {
+        color: var(--color-text);
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-sections {
+            gap: 24px;
+        }
+        
+        .form-section {
+            padding: 16px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Form validation
+        const form = document.getElementById('station-form');
+        
+        form.addEventListener('submit', function(e) {
+            // Validate at least one language is selected
+            const englishCheck = document.getElementById('access_english');
+            const afrikaansCheck = document.getElementById('access_afrikaans');
+            const xhosaCheck = document.getElementById('access_xhosa');
+            
+            if (!englishCheck.checked && !afrikaansCheck.checked && !xhosaCheck.checked) {
+                e.preventDefault();
+                alert('Please select at least one language.');
+                return;
+            }
+        });
+        
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}

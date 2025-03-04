@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Add Radio User - Newskoop{% endblock %}
+
+{% block page_title %}Add Radio User{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="user-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save User
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Radio User Information</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="user-form" method="post" action="{% url 'create_radio_user' %}">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Account Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Account Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address <span class="required">*</span></label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                        <small class="form-text">This will be used as the username for login.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password <span class="required">*</span></label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                        <small class="form-text">Minimum 8 characters.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_active" name="is_active" checked>
+                            <label for="is_active">Active</label>
+                        </div>
+                        <small class="form-text">Inactive users will not be able to log in.</small>
+                    </div>
+                </div>
+                
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Personal Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mobile_number" class="form-label">Mobile Number</label>
+                        <input type="tel" id="mobile_number" name="mobile_number" class="form-control">
+                    </div>
+                </div>
+                
+                <!-- Station Assignment Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Radio Station Assignment</h3>
+                    
+                    <div class="form-group">
+                        <label for="radio_station" class="form-label">Radio Station <span class="required">*</span></label>
+                        <select id="radio_station" name="radio_station" class="form-control" required>
+                            <option value="" disabled selected>Select a station</option>
+                            {% for station in stations %}
+                            <option value="{{ station.id }}">{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_primary_contact" name="is_primary_contact">
+                            <label for="is_primary_contact">Primary Contact</label>
+                        </div>
+                        <small class="form-text" id="primary-contact-info">
+                            The primary contact is the main representative for this radio station.
+                        </small>
+                    </div>
+                    
+                    <div class="station-info-container">
+                        <p class="station-info-text">Select a station to see its content access permissions.</p>
+                        <div id="station-info" class="station-info">
+                            <!-- This will be populated via JavaScript when a station is selected -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-sections {
+        display: grid;
+        gap: 32px;
+    }
+    
+    .form-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 24px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--color-text);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .station-info-container {
+        margin-top: 24px;
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .station-info-text {
+        margin: 0;
+        color: var(--color-text-light);
+        font-style: italic;
+    }
+    
+    .station-info {
+        display: none;
+        margin-top: 16px;
+    }
+    
+    .station-info h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: var(--color-text);
+    }
+    
+    .access-list {
+        margin: 0;
+        padding-left: 24px;
+    }
+    
+    .access-list li {
+        margin-bottom: 4px;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-sections {
+            gap: 24px;
+        }
+        
+        .form-section {
+            padding: 16px;
+        }
+        
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Password validation
+        const userForm = document.getElementById('user-form');
+        const passwordInput = document.getElementById('password');
+        
+        userForm.addEventListener('submit', function(e) {
+            if (passwordInput.value.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long.');
+                return;
+            }
+        });
+        
+        // Station selection handling
+        const stationSelect = document.getElementById('radio_station');
+        const stationInfo = document.getElementById('station-info');
+        const stationInfoText = document.querySelector('.station-info-text');
+        const primaryContactInfo = document.getElementById('primary-contact-info');
+        
+        // Store station data
+        const stations = {
+            {% for station in stations %}
+            "{{ station.id }}": {
+                name: "{{ station.name }}",
+                religion: "{{ station.get_religion_access_display }}",
+                languages: [
+                    {% if station.access_english %}{"code": "EN", "name": "English"}{% endif %}
+                    {% if station.access_afrikaans %}{% if station.access_english %},{% endif %}{"code": "AF", "name": "Afrikaans"}{% endif %}
+                    {% if station.access_xhosa %}{% if station.access_english or station.access_afrikaans %},{% endif %}{"code": "XH", "name": "Xhosa"}{% endif %}
+                ],
+                categories: [
+                    {% if station.access_news_stories %}{"name": "News Stories"}{% endif %}
+                    {% if station.access_news_bulletins %}{% if station.access_news_stories %},{% endif %}{"name": "News Bulletins"}{% endif %}
+                    {% if station.access_sport %}{% if station.access_news_stories or station.access_news_bulletins %},{% endif %}{"name": "Sport"}{% endif %}
+                    {% if station.access_finance %}{% if station.access_news_stories or station.access_news_bulletins or station.access_sport %},{% endif %}{"name": "Finance"}{% endif %}
+                    {% if station.access_specialty %}{% if station.access_news_stories or station.access_news_bulletins or station.access_sport or station.access_finance %},{% endif %}{"name": "Specialty Content"}{% endif %}
+                ],
+                primaryContact: {% if station.users.filter.is_primary_contact.exists %}true{% else %}false{% endif %}
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        };
+        
+        stationSelect.addEventListener('change', function() {
+            const stationId = this.value;
+            
+            if (stationId && stations[stationId]) {
+                const station = stations[stationId];
+                
+                // Update primary contact info
+                if (station.primaryContact) {
+                    primaryContactInfo.innerHTML = 'This station already has a primary contact. Setting this user as primary will replace the existing primary contact.';
+                } else {
+                    primaryContactInfo.innerHTML = 'The primary contact is the main representative for this radio station.';
+                }
+                
+                // Update station info display
+                let html = `<h4>${station.name} Access Permissions</h4>`;
+                html += `<ul class="access-list">`;
+                html += `<li><strong>Religion:</strong> ${station.religion}</li>`;
+                
+                // Languages
+                html += `<li><strong>Languages:</strong> `;
+                if (station.languages.length > 0) {
+                    html += station.languages.map(lang => lang.name).join(', ');
+                } else {
+                    html += 'None';
+                }
+                html += `</li>`;
+                
+                // Categories
+                html += `<li><strong>Content Categories:</strong> `;
+                if (station.categories.length > 0) {
+                    html += station.categories.map(cat => cat.name).join(', ');
+                } else {
+                    html += 'None';
+                }
+                html += `</li>`;
+                
+                html += `</ul>`;
+                html += `<p>The user will inherit these access permissions from the station.</p>`;
+                
+                stationInfo.innerHTML = html;
+                stationInfo.style.display = 'block';
+                stationInfoText.style.display = 'none';
+            } else {
+                stationInfo.style.display = 'none';
+                stationInfoText.style.display = 'block';
+                primaryContactInfo.innerHTML = 'The primary contact is the main representative for this radio station.';
+            }
+        });
+    });
+</script>
+{% endblock %}

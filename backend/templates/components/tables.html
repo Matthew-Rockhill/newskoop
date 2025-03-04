@@ -1,0 +1,168 @@
+{% comment %}
+Table component with optional selectable rows and pagination
+Usage:
+{% include "components/tables.html" with columns=columns rows=rows %}
+{% endcomment %}
+
+<div class="table-container">
+    <table class="table {% if selectable %}table-selectable{% endif %}
+</div>
+{% endif %}
+
+{% if selectable and bulk_actions %}
+<div class="bulk-actions" style="display: none;">
+    <span class="selected-count-text">Selected <span class="selected-count">0</span> items</span>
+    <div class="bulk-action-buttons">
+        {% for action in bulk_actions %}
+        <button type="button" class="btn btn-sm {% if action.style %}btn-{{ action.style }}{% else %}btn-outline{% endif %}" 
+                data-action="{{ action.action }}"
+                {% if action.confirm %}data-confirm="{{ action.confirm }}"{% endif %}
+                {% if action.js %}onclick="{{ action.js }}"{% endif %}>
+            {% if action.icon %}{{ action.icon|safe }}{% endif %}
+            {{ action.label }}
+        </button>
+        {% endfor %}
+    </div>
+</div>
+{% endif %} {% if class %}{{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %}>
+        <thead>
+            <tr>
+                {% if selectable %}
+                <th class="table-checkbox">
+                    <input type="checkbox" class="select-all-checkbox" id="select-all-{{ id|default:'table' }}">
+                </th>
+                {% endif %}
+                
+                {% for column in columns %}
+                <th class="{% if column.class %}{{ column.class }}{% endif %}"
+                    {% if column.width %}style="width: {{ column.width }};"{% endif %}>
+                    {% if column.sortable %}
+                    <a href="?sort={% if sort_by == column.key and sort_dir == 'asc' %}-{% endif %}{{ column.key }}" class="sortable-header">
+                        {{ column.label }}
+                        {% if sort_by == column.key %}
+                            {% if sort_dir == 'asc' %}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 19V5M12 5L5 12M12 5L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            {% else %}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            {% endif %}
+                        {% endif %}
+                    </a>
+                    {% else %}
+                    {{ column.label }}
+                    {% endif %}
+                </th>
+                {% endfor %}
+                
+                {% if actions %}
+                <th class="table-actions">Actions</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr {% if row.id %}data-id="{{ row.id }}"{% endif %} class="{% if row.class %}{{ row.class }}{% endif %}">
+                {% if selectable %}
+                <td class="table-checkbox">
+                    <input type="checkbox" class="row-checkbox" value="{{ row.id }}">
+                </td>
+                {% endif %}
+                
+                {% for column in columns %}
+                <td class="{% if column.class %}{{ column.class }}{% endif %}">
+                    {% if column.template %}
+                        {% include column.template with value=row|get_item:column.key row=row %}
+                    {% else %}
+                        {{ row|get_item:column.key }}
+                    {% endif %}
+                </td>
+                {% endfor %}
+                
+                {% if actions %}
+                <td class="table-actions">
+                    <div class="table-actions-container">
+                        {% for action in actions %}
+                        {% if action.condition|default:True %}
+                        {% if action.type == "link" %}
+                        <a href="{{ action.url|replace:'{id}':row.id }}" class="btn btn-sm {% if action.style %}btn-{{ action.style }}{% else %}btn-outline{% endif %}" title="{{ action.label }}">
+                            {% if action.icon %}{{ action.icon|safe }}{% endif %}
+                            {% if not action.icon_only %}{{ action.label }}{% endif %}
+                        </a>
+                        {% elif action.type == "button" %}
+                        <button type="button" class="btn btn-sm {% if action.style %}btn-{{ action.style }}{% else %}btn-outline{% endif %}" 
+                                {% if action.modal %}data-toggle="modal" data-target="#{{ action.modal }}" data-id="{{ row.id }}"{% endif %}
+                                {% if action.js %}onclick="{{ action.js|replace:'{id}':row.id }}"{% endif %}
+                                title="{{ action.label }}">
+                            {% if action.icon %}{{ action.icon|safe }}{% endif %}
+                            {% if not action.icon_only %}{{ action.label }}{% endif %}
+                        </button>
+                        {% endif %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr class="empty-table">
+                <td colspan="{{ columns|length|add:selectable|add:actions }}">
+                    <div class="empty-state">
+                        <p>{{ empty_message|default:"No items found." }}</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pagination %}
+<div class="pagination">
+    {% if pagination.has_previous %}
+    <span class="pagination-item">
+        <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="First page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    <span class="pagination-item">
+        <a href="?page={{ pagination.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="Previous page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    {% endif %}
+    
+    {% for i in pagination.page_range %}
+        {% if pagination.number == i %}
+        <span class="pagination-item">
+            <span class="pagination-link active">{{ i }}</span>
+        </span>
+        {% elif i > pagination.number|add:"-3" and i < pagination.number|add:"3" %}
+        <span class="pagination-item">
+            <a href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link">{{ i }}</a>
+        </span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if pagination.has_next %}
+    <span class="pagination-item">
+        <a href="?page={{ pagination.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="Next page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    <span class="pagination-item">
+        <a href="?page={{ pagination.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="Last page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12h14M19 12l-7 7M19 12l-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    {% endif %}

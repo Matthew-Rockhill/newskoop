@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Edit User - Newskoop{% endblock %}
+
+{% block page_title %}Edit User{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="user-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save Changes
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Edit Radio User</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="user-form" method="post" action="{% url 'edit_user' user_id=user.id %}">
+            {% csrf_token %}
+            
+            <div class="form-sections">
+                <!-- Account Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Account Information</h3>
+                    
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-control" value="{{ user.email }}" disabled>
+                        <small class="form-text">Email address cannot be changed. Contact an administrator for assistance.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
+                            <label for="is_active">Active</label>
+                        </div>
+                        <small class="form-text">Inactive users will not be able to log in.</small>
+                    </div>
+                </div>
+                
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Personal Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control" value="{{ user.first_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" id="last_name" name="last_name" class="form-control" value="{{ user.last_name }}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mobile_number" class="form-label">Mobile Number</label>
+                        <input type="tel" id="mobile_number" name="mobile_number" class="form-control" value="{{ user.mobile_number }}">
+                    </div>
+                </div>
+                
+                <!-- Radio Station Assignment Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Radio Station Assignment</h3>
+                    
+                    <div class="form-group">
+                        <label for="radio_station" class="form-label">Radio Station <span class="required">*</span></label>
+                        <select id="radio_station" name="radio_station" class="form-control" required>
+                            <option value="" disabled>Select a station</option>
+                            {% for station in stations %}
+                            <option value="{{ station.id }}" {% if user.radio_station.id == station.id %}selected{% endif %}>{{ station.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="checkbox-container">
+                            <input type="checkbox" id="is_primary_contact" name="is_primary_contact" {% if user.is_primary_contact %}checked{% endif %}>
+                            <label for="is_primary_contact">Primary Contact</label>
+                        </div>
+                        <small class="form-text" id="primary-contact-info">
+                            The primary contact is the main representative for this radio station.
+                            {% if user.radio_station %}
+                                {% for station_user in user.radio_station.users.all %}
+                                    {% if station_user.is_primary_contact and station_user.id != user.id %}
+                                    <br><strong>Note:</strong> This will replace the current primary contact ({{ station_user.email }}).
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete User Button -->
+<div class="danger-zone mt-4">
+    <h3 class="danger-title">Danger Zone</h3>
+    <p class="danger-text">Once you delete a user, there is no going back. Please be certain.</p>
+    <a href="{% url 'delete_user' user_id=user.id %}" class="btn btn-danger">Delete User</a>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-sections {
+        display: grid;
+        gap: 32px;
+    }
+    
+    .form-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 24px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        color: var(--color-text);
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .form-row .form-group {
+        flex: 1;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .danger-zone {
+        background-color: rgba(220, 53, 69, 0.1);
+        border: 1px solid var(--color-danger);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        margin-top: 24px;
+    }
+    
+    .danger-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--color-danger);
+        margin-bottom: 8px;
+    }
+    
+    .danger-text {
+        color: var(--color-text);
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-sections {
+            gap: 24px;
+        }
+        
+        .form-section {
+            padding: 16px;
+        }
+        
+        .form-row {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}

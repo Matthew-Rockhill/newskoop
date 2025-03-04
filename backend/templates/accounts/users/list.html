@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Users - Newskoop{% endblock %}
+
+{% block page_title %}Users{% endblock %}
+
+{% block page_actions %}
+<div class="button-group">
+    <a href="{% url 'create_staff_user' %}" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 8v6M17 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Add Staff User
+    </a>
+    
+    <a href="{% url 'create_radio_user' %}" class="btn btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20 8v6M17 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Add Radio User
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="tabs-container">
+            <a href="{% url 'user_list' %}?user_type=STAFF" class="tab {% if user_type == 'STAFF' %}active{% endif %}">Staff Users</a>
+            <a href="{% url 'user_list' %}?user_type=RADIO" class="tab {% if user_type == 'RADIO' %}active{% endif %}">Radio Station Users</a>
+        </div>
+        
+        <div class="search-filters">
+            <form action="{% url 'user_list' %}" method="get" class="search-form">
+                <input type="hidden" name="user_type" value="{{ user_type }}">
+                
+                <div class="search-input-container">
+                    <input type="text" name="q" placeholder="Search users..." value="{{ search_query|default:'' }}" class="search-input">
+                    <button type="submit" class="search-button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="filter-container">
+                    {% if user_type == 'STAFF' %}
+                    <select name="role" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Roles</option>
+                        {% for code, name in staff_roles %}
+                        <option value="{{ code }}" {% if role_filter == code %}selected{% endif %}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <select name="station" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Stations</option>
+                        {% for station in stations %}
+                        <option value="{{ station.id }}" {% if station_filter == station.id|stringformat:"s" %}selected{% endif %}>{{ station.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    
+                    <select name="status" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                    
+                    {% if search_query or role_filter or station_filter or status_filter %}
+                    <a href="{% url 'user_list' %}?user_type={{ user_type }}" class="clear-filters">Clear Filters</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card-content">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        {% if user_type == 'STAFF' %}
+                        <th>Role</th>
+                        {% else %}
+                        <th>Station</th>
+                        {% endif %}
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.get_full_name }}</td>
+                        <td>{{ user.email }}</td>
+                        {% if user_type == 'STAFF' %}
+                        <td>
+                            <span class="role-badge">{{ user.get_staff_role_display }}</span>
+                        </td>
+                        {% else %}
+                        <td>
+                            {% if user.radio_station %}
+                            <a href="{% url 'station_detail' station_id=user.radio_station.id %}" class="table-link">{{ user.radio_station.name }}</a>
+                            {% if user.is_primary_contact %}
+                            <span class="user-badge user-primary-badge">Primary</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">No station</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                        <td>
+                            {% if user.is_active %}
+                            <span class="status-badge status-active">Active</span>
+                            {% else %}
+                            <span class="status-badge status-inactive">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'edit_user' user_id=user.id %}" class="btn btn-sm btn-icon btn-outline" title="Edit User">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <a href="{% url 'reset_password' user_id=user.id %}" class="btn btn-sm btn-icon btn-outline" title="Reset Password">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                <a href="{% url 'delete_user' user_id=user.id %}" class="btn btn-sm btn-icon btn-outline" title="Delete User">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="empty-table">
+                            <div class="empty-state">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M23 21v-2a4 4 0 00-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p>No users found.</p>
+                                {% if user_type == 'STAFF' %}
+                                <a href="{% url 'create_staff_user' %}" class="btn btn-primary mt-3">Add Staff User</a>
+                                {% else %}
+                                <a href="{% url 'create_radio_user' %}" class="btn btn-primary mt-3">Add Radio User</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .button-group {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .tabs-container {
+        display: flex;
+        border-bottom: 1px solid var(--color-gray-200);
+        margin-bottom: 16px;
+    }
+    
+    .tab {
+        padding: 8px 16px;
+        border-bottom: 2px solid transparent;
+        color: var(--color-text-light);
+        font-weight: 500;
+    }
+    
+    .tab:hover {
+        color: var(--color-text);
+    }
+    
+    .tab.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+    }
+    
+    .search-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        margin-top: 16px;
+    }
+    
+    .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        width: 100%;
+    }
+    
+    .search-input-container {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 8px 36px 8px 12px;
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+    }
+    
+    .search-button {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        padding: 0 12px;
+        background: none;
+        border: none;
+        color: var(--color-text-light);
+        cursor: pointer;
+    }
+    
+    .filter-container {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+    
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+        background-color: var(--color-background);
+    }
+    
+    .clear-filters {
+        font-size: 0.875rem;
+        color: var(--color-text-light);
+    }
+    
+    .table-link {
+        color: var(--color-text);
+        font-weight: 500;
+    }
+    
+    .table-link:hover {
+        color: var(--color-primary);
+    }
+    
+    .role-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+        border-radius: 3px;
+        background-color: var(--color-gray-200);
+        color: var(--color-text);
+    }
+    
+    .user-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        border-radius: 3px;
+        margin-left: 4px;
+    }
+    
+    .user-primary-badge {
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary-dark);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        font-size: 0.75rem;
+        border-radius: 12px;
+    }
+    
+    .status-active {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--color-success);
+    }
+    
+    .status-inactive {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--color-danger);
+    }
+    
+    .table-actions {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--color-text-light);
+    }
+    
+    .empty-state svg {
+        margin: 0 auto 16px;
+        color: var(--color-gray-300);
+    }
+    
+    .text-muted {
+        color: var(--color-text-light);
+    }
+    
+    .mt-3 {
+        margin-top: 12px;
+    }
+    
+    @media (max-width: 768px) {
+        .button-group {
+            flex-direction: column;
+        }
+        
+        .tabs-container {
+            overflow-x: auto;
+        }
+        
+        .filter-container {
+            flex-wrap: wrap;
+        }
+    }
+</style>
+{% endblock %}

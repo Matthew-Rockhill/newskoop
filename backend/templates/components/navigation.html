@@ -1,0 +1,274 @@
+{% comment %}
+Navigation components including breadcrumbs and tabs
+Usage for breadcrumbs:
+{% include "components/navigation.html" with type="breadcrumb" items=breadcrumbs %}
+
+Usage for tabs:
+{% include "components/navigation.html" with type="tabs" items=tabs %}
+{% endcomment %}
+
+{% if type == "breadcrumb" %}
+<nav class="breadcrumb {% if class %}{{ class }}{% endif %}" aria-label="breadcrumb">
+    <ol>
+        {% for item in items %}
+        <li class="breadcrumb-item {% if forloop.last %}active{% endif %}">
+            {% if not forloop.last %}
+            <a href="{{ item.url }}">{{ item.label }}</a>
+            {% else %}
+            <span>{{ item.label }}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</nav>
+
+{% elif type == "tabs" %}
+<div class="tabs {% if class %}{{ class }}{% endif %}">
+    <div class="tabs-list">
+        {% for item in items %}
+        <a href="{{ item.url }}" class="tab-item {% if item.active %}active{% endif %}" 
+           {% if item.id %}id="{{ item.id }}"{% endif %}>
+            {% if item.icon %}
+            <span class="tab-icon">{{ item.icon|safe }}</span>
+            {% endif %}
+            <span class="tab-label">{{ item.label }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    <div class="tabs-content">
+        {{ content|safe }}
+    </div>
+</div>
+
+{% elif type == "pagination" %}
+<div class="pagination {% if class %}{{ class }}{% endif %}">
+    {% if pagination.has_previous %}
+    <span class="pagination-item">
+        <a href="?page=1{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="First page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    <span class="pagination-item">
+        <a href="?page={{ pagination.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="Previous page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    {% endif %}
+    
+    {% for i in pagination.page_range %}
+        {% if pagination.number == i %}
+        <span class="pagination-item">
+            <span class="pagination-link active">{{ i }}</span>
+        </span>
+        {% elif i > pagination.number|add:"-3" and i < pagination.number|add:"3" %}
+        <span class="pagination-item">
+            <a href="?page={{ i }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link">{{ i }}</a>
+        </span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if pagination.has_next %}
+    <span class="pagination-item">
+        <a href="?page={{ pagination.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="Next page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    <span class="pagination-item">
+        <a href="?page={{ pagination.num_pages }}{% if search_query %}&q={{ search_query }}{% endif %}{% if sort_by %}&sort={{ sort_dir|default:'' }}{{ sort_by }}{% endif %}" class="pagination-link" title="Last page">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 12h14M19 12l-7 7M19 12l-7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+    </span>
+    {% endif %}
+</div>
+
+{% elif type == "sidebar" %}
+<aside class="sidebar {% if class %}{{ class }}{% endif %}">
+    <nav class="sidebar-nav">
+        <ul>
+            {% for item in items %}
+            {% if item.type == "section" %}
+            <li class="nav-section">
+                <span class="nav-section-title">{{ item.label }}</span>
+            </li>
+            {% else %}
+            <li>
+                <a href="{{ item.url }}" class="{% if item.active %}active{% endif %}" {% if item.id %}id="{{ item.id }}"{% endif %}>
+                    {% if item.icon %}
+                    <span class="nav-icon">{{ item.icon|safe }}</span>
+                    {% endif %}
+                    <span>{{ item.label }}</span>
+                    {% if item.badge %}
+                    <span class="nav-badge badge-{{ item.badge.type|default:'primary' }}">{{ item.badge.text }}</span>
+                    {% endif %}
+                </a>
+                
+                {% if item.children %}
+                <ul class="nav-children {% if item.active %}show{% endif %}">
+                    {% for child in item.children %}
+                    <li>
+                        <a href="{{ child.url }}" class="{% if child.active %}active{% endif %}" {% if child.id %}id="{{ child.id }}"{% endif %}>
+                            {% if child.icon %}
+                            <span class="nav-icon">{{ child.icon|safe }}</span>
+                            {% endif %}
+                            <span>{{ child.label }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+</aside>
+{% endif %}
+
+<style>
+    /* Breadcrumb Styles */
+    .breadcrumb {
+        padding: 12px 0;
+        margin-bottom: 16px;
+    }
+    
+    .breadcrumb ol {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+    }
+    
+    .breadcrumb-item:not(:last-child)::after {
+        content: "/";
+        margin: 0 8px;
+        color: var(--color-gray-400);
+    }
+    
+    .breadcrumb-item a {
+        color: var(--color-text-light);
+        text-decoration: none;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: var(--color-primary);
+    }
+    
+    .breadcrumb-item.active {
+        color: var(--color-text);
+        font-weight: 500;
+    }
+    
+    /* Tabs Styles */
+    .tabs {
+        margin-bottom: 24px;
+    }
+    
+    .tabs-list {
+        display: flex;
+        border-bottom: 1px solid var(--color-gray-200);
+        overflow-x: auto;
+        scrollbar-width: none;  /* Firefox */
+    }
+    
+    .tabs-list::-webkit-scrollbar {
+        display: none;  /* Chrome, Safari, Edge */
+    }
+    
+    .tab-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        font-weight: 500;
+        color: var(--color-text-light);
+        border-bottom: 2px solid transparent;
+        white-space: nowrap;
+    }
+    
+    .tab-item:hover {
+        color: var(--color-text);
+    }
+    
+    .tab-item.active {
+        color: var(--color-primary);
+        border-bottom-color: var(--color-primary);
+    }
+    
+    .tab-icon {
+        margin-right: 8px;
+    }
+    
+    .tabs-content {
+        padding: 16px 0;
+    }
+    
+    /* Sidebar badge */
+    .nav-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        height: 20px;
+        font-size: 0.75rem;
+        border-radius: 10px;
+        margin-left: auto;
+    }
+    
+    .badge-primary {
+        background-color: var(--color-primary);
+        color: white;
+    }
+    
+    .badge-secondary {
+        background-color: var(--color-gray-400);
+        color: white;
+    }
+    
+    .badge-success {
+        background-color: var(--color-success);
+        color: white;
+    }
+    
+    .badge-danger {
+        background-color: var(--color-danger);
+        color: white;
+    }
+    
+    .badge-warning {
+        background-color: var(--color-warning);
+        color: white;
+    }
+    
+    .badge-info {
+        background-color: var(--color-info);
+        color: white;
+    }
+    
+    /* Sidebar children */
+    .nav-children {
+        margin-left: 20px;
+        display: none;
+    }
+    
+    .nav-children.show {
+        display: block;
+    }
+    
+    .nav-children a {
+        padding: 8px 16px;
+        font-size: 0.875rem;
+    }
+</style>

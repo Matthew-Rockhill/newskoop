@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Newskoop{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Welcome card -->
+    <div class="card dashboard-welcome">
+        <div class="card-content">
+            <h2 class="welcome-title">Welcome, {{ user.get_full_name }}</h2>
+            <p class="welcome-message">
+                {% if user.user_type == 'STAFF' %}
+                Welcome to the Newskoop content management system. Here you can manage all aspects of the platform.
+                {% else %}
+                Welcome to Newskoop. Access all your content and station settings from this dashboard.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    
+    <!-- Stats overview -->
+    <div class="stats-grid">
+        {% if user.user_type == 'STAFF' %}
+        <!-- Admin stats -->
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 3.13a4 4 0 010 7.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Active Users</h3>
+                    <p class="stat-value">{{ stats.active_users }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Radio Stations</h3>
+                    <p class="stat-value">{{ stats.active_stations }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Content Items</h3>
+                    <p class="stat-value">{{ stats.content_count }}</p>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Radio station stats -->
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Available Content</h3>
+                    <p class="stat-value">{{ stats.available_content }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8v8M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Downloaded</h3>
+                    <p class="stat-value">{{ stats.downloads }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">New Updates</h3>
+                    <p class="stat-value">{{ stats.new_updates }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Recent activity -->
+    <div class="card recent-activity">
+        <div class="card-header">
+            <h2 class="card-title">Recent Activity</h2>
+        </div>
+        <div class="card-content">
+            {% if recent_activity %}
+            <ul class="activity-list">
+                {% for activity in recent_activity %}
+                <li class="activity-item">
+                    <div class="activity-icon">
+                        {% if activity.type == 'user' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% elif activity.type == 'content' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% elif activity.type == 'station' %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% else %}
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="activity-details">
+                        <p class="activity-text">{{ activity.text }}</p>
+                        <span class="activity-time">{{ activity.time }}</span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <p>No recent activity to display.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Quick actions -->
+    <!-- For Staff Users -->
+    {% if user.user_type == 'STAFF' %}
+    <div class="actions-grid">
+        <a href="{% url 'create_staff_user' %}" class="action-card">
+            <div class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="8.5" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M20 8v6M17 11h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="action-label">Add New User</span>
+        </a>
+        <a href="{% url 'station_create' %}" class="action-card">
+            <div class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 3v18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="action-label">Add Radio Station</span>
+        </a>
+        <a href="/newsroom/stories/add/" class="action-card">
+            <div class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 3v18M7 7h.01M7 12h.01M7 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="action-label">Add Story</span>
+        </a>
+        <a href="/newsroom/bulletins/add/" class="action-card">
+            <div class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 5v14H5V5h14zm0-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z" fill="currentColor"/>
+                    <path d="M7 10h10v2H7v-2zM7 14h10v2H7v-2z" fill="currentColor"/>
+                </svg>
+            </div>
+            <span class="action-label">Add Bulletin</span>
+        </a>
+    </div>
+    {% else %}
+    <!-- For Radio Users -->
+    <div class="actions-grid">
+        <a href="/radio_zone/content/" class="action-card">
+            <div class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="action-label">Browse Content</span>
+        </a>
+        <a href="{% url 'profile' %}" class="action-card">
+            <div class="action-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="action-label">Update Profile</span>
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .dashboard-welcome {
+        background-color: var(--color-background);
+        color: var(--color-text);
+        border: 1px solid var(--color-gray-200);
+    }
+    
+    .welcome-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .welcome-message {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+    
+    .stat-card {
+        height: 100%;
+    }
+    
+    .stat-card .card-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary);
+    }
+    
+    .stat-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-text-light);
+        margin-bottom: 4px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin: 0;
+    }
+    
+    .activity-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: var(--color-gray-100);
+        color: var(--color-text);
+    }
+    
+    .activity-text {
+        margin: 0 0 4px 0;
+        color: var(--color-text);
+    }
+    
+    .activity-time {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 24px;
+        color: var(--color-text-light);
+    }
+    
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    
+    .action-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        text-align: center;
+    }
+    
+    .action-card:hover {
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary);
+    }
+    
+    .action-icon {
+        margin-bottom: 12px;
+        color: var(--color-text);
+    }
+    
+    .action-card:hover .action-icon {
+        color: var(--color-primary);
+    }
+    
+    .action-label {
+        font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

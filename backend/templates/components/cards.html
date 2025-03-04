@@ -1,0 +1,33 @@
+{% comment %}
+Card component with optional header and footer
+Usage: 
+{% include "components/cards.html" with title="Card Title" %}
+    Card content goes here
+{% endinclude %}
+{% endcomment %}
+
+<div class="card {% if class %}{{ class }}{% endif %}" {% if id %}id="{{ id }}"{% endif %}>
+    {% if title or card_actions %}
+    <div class="card-header">
+        {% if title %}
+        <h2 class="card-title">{{ title }}</h2>
+        {% endif %}
+        
+        {% if card_actions %}
+        <div class="card-actions">
+            {{ card_actions|safe }}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="card-content">
+        {{ content|safe }}
+    </div>
+    
+    {% if footer %}
+    <div class="card-footer">
+        {{ footer|safe }}
+    </div>
+    {% endif %}
+</div>
