@@ -1,0 +1,244 @@
+<!-- newsroom/templates/newsroom/categories/category_create.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Create Category - Newskoop{% endblock %}
+
+{% block page_title %}Create Category{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="category-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save Category
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">New Category</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="category-form" method="post" action="{% url 'newsroom:category_create' %}">
+            {% csrf_token %}
+            
+            <div class="form-columns">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Category Name <span class="required">*</span></label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="slug" class="form-label">Slug <span class="required">*</span></label>
+                        <input type="text" id="slug" name="slug" class="form-control" required>
+                        <small class="form-text">URL-friendly identifier (e.g., "international-news"). No spaces or special characters.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="parent" class="form-label">Parent Category</label>
+                        <select id="parent" name="parent" class="form-control">
+                            <option value="">No Parent (Top Level)</option>
+                            {% for category in parent_categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text">Optional. If selected, this category will be a sub-category.</small>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="access-section">
+                        <h3 class="section-title">Content Access</h3>
+                        <p class="section-intro">Select which content types this category grants access to:</p>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="is_news_story" name="is_news_story">
+                                <label for="is_news_story">News Stories</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="is_news_bulletin" name="is_news_bulletin">
+                                <label for="is_news_bulletin">News Bulletins</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="is_sport" name="is_sport">
+                                <label for="is_sport">Sport Content</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="is_finance" name="is_finance">
+                                <label for="is_finance">Finance Content</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-container">
+                                <input type="checkbox" id="is_specialty" name="is_specialty">
+                                <label for="is_specialty">Specialty Content</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card mt-4">
+                        <h4 class="info-title">Category Information</h4>
+                        <p>Categories are used to organize and control access to content for radio stations.</p>
+                        <p>Top-level categories appear in the main category list, while sub-categories are grouped under their parent.</p>
+                        <p>The content access checkboxes determine which types of content stations can access when subscribed to this category.</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .access-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .section-intro {
+        margin-bottom: 16px;
+        color: var(--color-text-light);
+    }
+    
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .info-card {
+        background-color: rgba(111, 179, 22, 0.1);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .info-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .info-card p {
+        margin-bottom: 8px;
+        font-size: 0.875rem;
+    }
+    
+    .info-card p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 16px;
+    }
+    
+    @media (max-width: 992px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Auto-generate slug from name
+        const nameInput = document.getElementById('name');
+        const slugInput = document.getElementById('slug');
+        
+        nameInput.addEventListener('input', function() {
+            // Only auto-generate if slug field hasn't been manually edited
+            if (!slugInput.dataset.edited) {
+                const slug = this.value
+                    .toLowerCase()
+                    .replace(/[^\w\s-]/g, '') // Remove special chars
+                    .replace(/\s+/g, '-')     // Replace spaces with hyphens
+                    .replace(/-+/g, '-');     // Replace multiple hyphens with single
+                
+                slugInput.value = slug;
+            }
+        });
+        
+        // Mark slug as edited when user changes it
+        slugInput.addEventListener('input', function() {
+            this.dataset.edited = 'true';
+        });
+    });
+</script>
+{% endblock %}

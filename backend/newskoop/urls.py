@@ -1,27 +1,22 @@
-# newskoop/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
-from accounts.urls import template_urlpatterns
+from django.shortcuts import redirect
 
 urlpatterns = [
     # Django admin
     path('admin/', admin.site.urls),
     
-    # API endpoints
-    path('api/accounts/', include('accounts.urls')),
-    # Other API endpoints will be added as apps are developed
+    # Template-based root URL
+    path('', lambda request: redirect('accounts:login'), name='home'),
     
-    # API documentation
-    path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    # Newsroom app URLs (template-based)
+    path('newsroom/', include('newsroom.urls', namespace='newsroom')),
+    
+    # Accounts app template-based URLs
+    path('accounts/', include('accounts.urls', namespace='accounts')),
 ]
-
-# Add template-based URLs
-urlpatterns += template_urlpatterns
 
 # Serve media files in development
 if settings.DEBUG:

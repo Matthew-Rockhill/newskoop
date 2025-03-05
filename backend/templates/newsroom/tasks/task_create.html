@@ -1,0 +1,303 @@
+<!-- newsroom/templates/newsroom/tasks/task_create.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Create Task - Newskoop{% endblock %}
+
+{% block page_title %}Create Task{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="task-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Create Task
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">New Task</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="task-form" method="post" action="{% url 'newsroom:task_create' %}">
+            {% csrf_token %}
+            
+            <div class="form-columns">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Task Title <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task_type" class="form-label">Task Type <span class="required">*</span></label>
+                        <select id="task_type" name="task_type" class="form-control" required>
+                            <option value="" disabled selected>Select task type</option>
+                            {% for type_code, type_name in task_type_choices %}
+                            <option value="{{ type_code }}">{{ type_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description" class="form-label">Description <span class="required">*</span></label>
+                        <textarea id="description" name="description" class="form-control" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assigned_to" class="form-label">Assign To <span class="required">*</span></label>
+                        <select id="assigned_to" name="assigned_to" class="form-control" required>
+                            <option value="" disabled selected>Select staff member</option>
+                            {% for user in staff_users %}
+                            <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="due_date" class="form-label">Due Date</label>
+                        <input type="datetime-local" id="due_date" name="due_date" class="form-control">
+                        <small class="form-text">Optional. If set, the task will be marked with a due date.</small>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="related-content-section">
+                        <h3 class="section-title">Related Content</h3>
+                        <p class="section-intro">Optionally link this task to existing content:</p>
+                        
+                        <div class="form-group">
+                            <label for="related_story" class="form-label">Related Story</label>
+                            <select id="related_story" name="related_story" class="form-control">
+                                <option value="">None</option>
+                                {% for story in stories %}
+                                <option value="{{ story.id }}">{{ story.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="related_bulletin" class="form-label">Related Bulletin</label>
+                            <select id="related_bulletin" name="related_bulletin" class="form-control">
+                                <option value="">None</option>
+                                {% for bulletin in bulletins %}
+                                <option value="{{ bulletin.id }}">{{ bulletin.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="task-type-info mt-4">
+                        <h4 class="info-title">Task Types Explained</h4>
+                        <div class="task-type-list">
+                            <div class="task-type-item">
+                                <span class="task-type-name">Create Story</span>
+                                <span class="task-type-desc">Create a new story from scratch</span>
+                            </div>
+                            <div class="task-type-item">
+                                <span class="task-type-name">Edit Story</span>
+                                <span class="task-type-desc">Edit or revise an existing story</span>
+                            </div>
+                            <div class="task-type-item">
+                                <span class="task-type-name">Translate Story</span>
+                                <span class="task-type-desc">Translate a story to another language</span>
+                            </div>
+                            <div class="task-type-item">
+                                <span class="task-type-name">Create Bulletin</span>
+                                <span class="task-type-desc">Create a new bulletin</span>
+                            </div>
+                            <div class="task-type-item">
+                                <span class="task-type-name">Create Show</span>
+                                <span class="task-type-desc">Create a new show</span>
+                            </div>
+                            <div class="task-type-item">
+                                <span class="task-type-name">Follow Up</span>
+                                <span class="task-type-desc">Follow up on a story or event</span>
+                            </div>
+                            <div class="task-type-item">
+                                <span class="task-type-name">Other</span>
+                                <span class="task-type-desc">Other task types</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .related-content-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .section-intro {
+        margin-bottom: 16px;
+        color: var(--color-text-light);
+    }
+    
+    .task-type-info {
+        background-color: rgba(111, 179, 22, 0.1);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .info-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .task-type-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .task-type-item {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .task-type-name {
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .task-type-desc {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 16px;
+    }
+    
+    @media (max-width: 992px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Filter stories based on task type
+        const taskTypeSelect = document.getElementById('task_type');
+        const relatedStorySelect = document.getElementById('related_story');
+        const relatedBulletinSelect = document.getElementById('related_bulletin');
+        
+        taskTypeSelect.addEventListener('change', function() {
+            const taskType = this.value;
+            
+            // Enable/disable related content selectors based on task type
+            if (taskType === 'STORY_EDIT' || taskType === 'STORY_TRANSLATE') {
+                relatedStorySelect.setAttribute('required', 'required');
+                relatedStorySelect.parentElement.querySelector('.form-label').innerHTML = 'Related Story <span class="required">*</span>';
+            } else {
+                relatedStorySelect.removeAttribute('required');
+                relatedStorySelect.parentElement.querySelector('.form-label').textContent = 'Related Story';
+            }
+            
+            if (taskType === 'BULLETIN_CREATE') {
+                relatedBulletinSelect.setAttribute('required', 'required');
+                relatedBulletinSelect.parentElement.querySelector('.form-label').innerHTML = 'Related Bulletin <span class="required">*</span>';
+            } else {
+                relatedBulletinSelect.removeAttribute('required');
+                relatedBulletinSelect.parentElement.querySelector('.form-label').textContent = 'Related Bulletin';
+            }
+        });
+        
+        // Form validation
+        const taskForm = document.getElementById('task-form');
+        taskForm.addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const taskType = document.getElementById('task_type').value;
+            const description = document.getElementById('description').value.trim();
+            const assignedTo = document.getElementById('assigned_to').value;
+            
+            if (!title || !taskType || !description || !assignedTo) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Check related content requirements
+            if ((taskType === 'STORY_EDIT' || taskType === 'STORY_TRANSLATE') && !relatedStorySelect.value) {
+                e.preventDefault();
+                alert('Please select a related story for this task type.');
+                return;
+            }
+            
+            if (taskType === 'BULLETIN_CREATE' && !relatedBulletinSelect.value) {
+                e.preventDefault();
+                alert('Please select a related bulletin for this task type.');
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}

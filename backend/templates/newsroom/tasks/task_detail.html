@@ -1,0 +1,463 @@
+<!-- newsroom/templates/newsroom/tasks/task_detail.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}{{ task.title }} - Newskoop{% endblock %}
+
+{% block page_title %}Task: {{ task.title }}{% endblock %}
+
+{% block page_actions %}
+{% if can_update_status %}
+<button type="button" class="btn btn-primary" id="update-status-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 5l7 7-7 7M5 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Update Status
+</button>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="task-detail">
+    {% if messages %}
+    <div class="alerts mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="task-content-container">
+        <!-- Main Task Content -->
+        <div class="card task-content">
+            <div class="card-header">
+                <div class="task-metadata">
+                    <div class="metadata-item">
+                        <span class="metadata-label">Task Type:</span>
+                        <span class="metadata-value">{{ task.get_task_type_display }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Created:</span>
+                        <span class="metadata-value">{{ task.created_at|date:"F j, Y" }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Status:</span>
+                        <span class="metadata-value">
+                            <span class="status-badge status-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+                        </span>
+                    </div>
+                    {% if task.due_date %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Due:</span>
+                        <span class="metadata-value {% if task.due_date < now and task.status != 'COMPLETED' %}overdue{% endif %}">
+                            {{ task.due_date|date:"F j, Y" }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    {% if task.completed_at %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Completed:</span>
+                        <span class="metadata-value">{{ task.completed_at|date:"F j, Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card-content">
+                <div class="task-description">
+                    <h3 class="section-title">Description</h3>
+                    <div class="description-content">{{ task.description|linebreaks }}</div>
+                </div>
+                
+                {% if task.related_story or task.related_bulletin %}
+                <div class="related-content">
+                    <h3 class="section-title">Related Content</h3>
+                    
+                    {% if task.related_story %}
+                    <div class="related-item">
+                        <div class="related-type">Story:</div>
+                        <a href="{% url 'newsroom:story_detail' story_id=task.related_story.id %}" class="related-link">
+                            {{ task.related_story.title }}
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if task.related_bulletin %}
+                    <div class="related-item">
+                        <div class="related-type">Bulletin:</div>
+                        <a href="{% url 'newsroom:bulletin_detail' bulletin_id=task.related_bulletin.id %}" class="related-link">
+                            {{ task.related_bulletin.title }}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Task notes -->
+        <div class="card task-notes">
+            <div class="card-header">
+                <h3 class="card-title">Notes</h3>
+            </div>
+            
+            <div class="card-content">
+                <div class="notes-list">
+                    {% for note in notes %}
+                    <div class="note-item">
+                        <div class="note-header">
+                            <div class="note-author">{{ note.user.get_full_name }}</div>
+                            <div class="note-date">{{ note.created_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                        <div class="note-content">{{ note.content|linebreaks }}</div>
+                    </div>
+                    {% empty %}
+                    <div class="empty-state">
+                        <p>No notes have been added to this task yet.</p>
+                    </div>
+                    {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+{% if can_update_status %}
+<div class="modal" id="status-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Update Task Status</h3>
+                <button type="button" class="modal-close" data-dismiss="modal" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <form method="post" action="{% url 'newsroom:task_update_status' task_id=task.id %}" id="status-form">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="status" class="form-label">New Status</label>
+                        <select id="status" name="status" class="form-control" required>
+                            {% for status_code, status_name in status_choices %}
+                            <option value="{{ status_code }}" {% if task.status == status_code %}selected{% endif %}>{{ status_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="note" class="form-label">Add a Note (Optional)</label>
+                        <textarea id="note" name="note" class="form-control" rows="3" placeholder="Explain why you're changing the status..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .task-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .task-content-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .task-metadata {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 24px;
+    }
+    
+    .metadata-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .metadata-label {
+        font-weight: 500;
+        color: var(--color-text-light);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-todo {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .status-in_progress {
+        background-color: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+    }
+    
+    .status-review {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .status-completed {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--color-success);
+    }
+    
+    .status-cancelled {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--color-danger);
+    }
+    
+    .overdue {
+        color: var(--color-danger);
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--color-text);
+    }
+    
+    .task-description {
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .description-content {
+        line-height: 1.6;
+    }
+    
+    .related-content {
+        margin-bottom: 16px;
+    }
+    
+    .related-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+    
+    .related-type {
+        font-weight: 500;
+        color: var(--color-text-light);
+    }
+    
+    .related-link {
+        color: var(--color-primary);
+    }
+    
+    .assignment-info {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .assignment-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .assignment-label {
+        font-size: 0.875rem;
+        color: var(--color-text-light);
+    }
+    
+    .assignment-value {
+        font-weight: 500;
+    }
+    
+    .notes-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .note-item {
+        border: 1px solid var(--color-gray-200);
+        border-radius: var(--border-radius);
+        padding: 16px;
+    }
+    
+    .note-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .note-author {
+        font-weight: 500;
+    }
+    
+    .note-date {
+        font-size: 0.875rem;
+        color: var(--color-text-light);
+    }
+    
+    .note-content {
+        line-height: 1.5;
+    }
+    
+    .btn-block {
+        display: block;
+        width: 100%;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 16px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 24px;
+        color: var(--color-text-light);
+    }
+    
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+    }
+    
+    .modal.active {
+        display: flex;
+    }
+    
+    .modal-dialog {
+        width: 100%;
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--color-text-light);
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 16px;
+        border-top: 1px solid var(--color-gray-200);
+    }
+    
+    @media (max-width: 992px) {
+        .task-content-container {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Status update modal
+        const updateStatusBtn = document.getElementById('update-status-btn');
+        const statusModal = document.getElementById('status-modal');
+        const closeButtons = document.querySelectorAll('[data-dismiss="modal"]');
+        
+        if (updateStatusBtn) {
+            updateStatusBtn.addEventListener('click', function() {
+                statusModal.classList.add('active');
+                document.body.classList.add('modal-open');
+            });
+        }
+        
+        // Close modal
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                statusModal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            });
+        });
+        
+        // Close when clicking outside modal
+        if (statusModal) {
+            statusModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.classList.remove('modal-open');
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

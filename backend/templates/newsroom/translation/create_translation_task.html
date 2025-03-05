@@ -1,0 +1,340 @@
+<!-- newsroom/templates/newsroom/translation/create_translation_task.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Create Translation Task - Newskoop{% endblock %}
+
+{% block page_title %}Create Translation Task{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'newsroom:translation_dashboard' %}" class="btn btn-outline">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 17l-5-5 5-5M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back to Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Create Translation Task</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="post" action="{% url 'newsroom:create_translation_task' %}" id="translation-task-form">
+            {% csrf_token %}
+            
+            <div class="form-columns">
+                <div class="form-column">
+                    <div class="form-group">
+                        <label for="content_type" class="form-label">Content Type <span class="required">*</span></label>
+                        <select id="content_type" name="content_type" class="form-control" required>
+                            <option value="" disabled selected>Select content type</option>
+                            <option value="story">Story</option>
+                            <option value="bulletin">Bulletin</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group content-select-container" id="story-select-container" style="display: none;">
+                        <label for="content_id_story" class="form-label">Select Story <span class="required">*</span></label>
+                        <select id="content_id_story" name="content_id" class="form-control content-select" disabled>
+                            <option value="" disabled selected>Select a story to translate</option>
+                            {% for story in stories_needing_afrikaans %}
+                            <option value="{{ story.id }}" data-needs-af="1" data-needs-xh="{% if story in stories_needing_xhosa %}1{% else %}0{% endif %}">
+                                {{ story.title }} ({{ story.created_at|date:"M d, Y" }})
+                            </option>
+                            {% endfor %}
+                            {% for story in stories_needing_xhosa %}
+                            {% if story not in stories_needing_afrikaans %}
+                            <option value="{{ story.id }}" data-needs-af="0" data-needs-xh="1">
+                                {{ story.title }} ({{ story.created_at|date:"M d, Y" }})
+                            </option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group content-select-container" id="bulletin-select-container" style="display: none;">
+                        <label for="content_id_bulletin" class="form-label">Select Bulletin <span class="required">*</span></label>
+                        <select id="content_id_bulletin" name="content_id" class="form-control content-select" disabled>
+                            <option value="" disabled selected>Select a bulletin to translate</option>
+                            {% for bulletin in bulletins_needing_afrikaans %}
+                            <option value="{{ bulletin.id }}" data-needs-af="1" data-needs-xh="{% if bulletin in bulletins_needing_xhosa %}1{% else %}0{% endif %}">
+                                {{ bulletin.title }} ({{ bulletin.created_at|date:"M d, Y" }})
+                            </option>
+                            {% endfor %}
+                            {% for bulletin in bulletins_needing_xhosa %}
+                            {% if bulletin not in bulletins_needing_afrikaans %}
+                            <option value="{{ bulletin.id }}" data-needs-af="0" data-needs-xh="1">
+                                {{ bulletin.title }} ({{ bulletin.created_at|date:"M d, Y" }})
+                            </option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="language" class="form-label">Target Language <span class="required">*</span></label>
+                        <select id="language" name="language" class="form-control" required>
+                            <option value="" disabled selected>Select target language</option>
+                            <option value="AF" id="option-af">Afrikaans</option>
+                            <option value="XH" id="option-xh">Xhosa</option>
+                        </select>
+                        <small class="form-text">Select the language to translate into.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assigned_to" class="form-label">Assign To <span class="required">*</span></label>
+                        <select id="assigned_to" name="assigned_to" class="form-control" required>
+                            <option value="" disabled selected>Select translator</option>
+                            {% for user in staff_users %}
+                            <option value="{{ user.id }}">{{ user.get_full_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="due_date" class="form-label">Due Date</label>
+                        <input type="datetime-local" id="due_date" name="due_date" class="form-control">
+                        <small class="form-text">Optional. If set, the task will be marked with a due date.</small>
+                    </div>
+                </div>
+                
+                <div class="form-column">
+                    <div class="info-card">
+                        <h3 class="info-title">Translation Task Information</h3>
+                        <p>This form allows you to create a translation task and assign it to a team member. The translator will receive a notification about their new task.</p>
+                        
+                        <div class="info-steps">
+                            <div class="info-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4 class="step-title">Select Content Type</h4>
+                                    <p>Choose whether you want to translate a story or a bulletin.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4 class="step-title">Select Specific Content</h4>
+                                    <p>Choose the specific story or bulletin that needs translation.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4 class="step-title">Choose Target Language</h4>
+                                    <p>Select the language this content should be translated into.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h4 class="step-title">Assign to Translator</h4>
+                                    <p>Assign the task to a staff member who will handle the translation.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Create Translation Task</button>
+                <a href="{% url 'newsroom:translation_dashboard' %}" class="btn btn-outline">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .info-card {
+        background-color: rgba(111, 179, 22, 0.1);
+        border-radius: var(--border-radius);
+        padding: 20px;
+    }
+    
+    .info-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    
+    .info-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 24px;
+    }
+    
+    .info-step {
+        display: flex;
+        gap: 16px;
+    }
+    
+    .step-number {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background-color: var(--color-primary);
+        color: white;
+        border-radius: 50%;
+        font-weight: 600;
+    }
+    
+    .step-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .step-content p {
+        margin: 0;
+        font-size: 0.875rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    @media (max-width: 992px) {
+        .form-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Content type selection handling
+        const contentTypeSelect = document.getElementById('content_type');
+        const storyContainer = document.getElementById('story-select-container');
+        const bulletinContainer = document.getElementById('bulletin-select-container');
+        const storySelect = document.getElementById('content_id_story');
+        const bulletinSelect = document.getElementById('content_id_bulletin');
+        const languageSelect = document.getElementById('language');
+        const optionAf = document.getElementById('option-af');
+        const optionXh = document.getElementById('option-xh');
+        
+        // Handle content type change
+        contentTypeSelect.addEventListener('change', function() {
+            // Hide all content selects
+            document.querySelectorAll('.content-select-container').forEach(container => {
+                container.style.display = 'none';
+            });
+            
+            // Disable all content selects
+            document.querySelectorAll('.content-select').forEach(select => {
+                select.disabled = true;
+                select.required = false;
+            });
+            
+            // Reset language options
+            optionAf.disabled = false;
+            optionXh.disabled = false;
+            languageSelect.selectedIndex = 0;
+            
+            // Show and enable relevant select based on content type
+            if (this.value === 'story') {
+                storyContainer.style.display = 'block';
+                storySelect.disabled = false;
+                storySelect.required = true;
+            } else if (this.value === 'bulletin') {
+                bulletinContainer.style.display = 'block';
+                bulletinSelect.disabled = false;
+                bulletinSelect.required = true;
+            }
+        });
+        
+        // Handle content selection to update available languages
+        [storySelect, bulletinSelect].forEach(select => {
+            select.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const needsAf = selectedOption.getAttribute('data-needs-af') === '1';
+                const needsXh = selectedOption.getAttribute('data-needs-xh') === '1';
+                
+                // Enable/disable language options based on translation needs
+                optionAf.disabled = !needsAf;
+                optionXh.disabled = !needsXh;
+                
+                // Reset language selection
+                languageSelect.selectedIndex = 0;
+            });
+        });
+        
+        // Form validation
+        const form = document.getElementById('translation-task-form');
+        form.addEventListener('submit', function(e) {
+            const contentType = contentTypeSelect.value;
+            const contentId = contentType === 'story' ? storySelect.value : bulletinSelect.value;
+            const language = languageSelect.value;
+            const assignedTo = document.getElementById('assigned_to').value;
+            
+            if (!contentType || !contentId || !language || !assignedTo) {
+                e.preventDefault();
+                alert('Please fill in all required fields.');
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}

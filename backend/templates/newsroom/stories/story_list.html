@@ -1,0 +1,363 @@
+<!-- newsroom/templates/newsroom/stories/story_list.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Stories - Newskoop{% endblock %}
+
+{% block page_title %}Stories{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'newsroom:story_create' %}" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    New Story
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="filters-container">
+            <form action="{% url 'newsroom:story_list' %}" method="get" class="filters-form">
+                <div class="search-container">
+                    <input type="text" name="q" placeholder="Search stories..." value="{{ search_query|default:'' }}" class="search-input">
+                    <button type="submit" class="search-button">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="filter-selects">
+                    <select name="status" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Statuses</option>
+                        {% for status_code, status_name in status_choices %}
+                        <option value="{{ status_code }}" {% if status_filter == status_code %}selected{% endif %}>{{ status_name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <select name="category" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <select name="language" class="filter-select" onchange="this.form.submit()">
+                        <option value="">All Languages</option>
+                        {% for lang_code, lang_name in language_choices %}
+                        <option value="{{ lang_code }}" {% if language_filter == lang_code %}selected{% endif %}>{{ lang_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                {% if search_query or status_filter or category_filter or language_filter %}
+                <a href="{% url 'newsroom:story_list' %}" class="clear-filters">Clear Filters</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <div class="card-content">
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>Categories</th>
+                        <th>Language</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for story in page_obj %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'newsroom:story_detail' story_id=story.id %}" class="story-title">
+                                {{ story.title }}
+                            </a>
+                            {% if story.audio_clips.exists %}
+                            <span class="audio-badge" title="Has audio clips">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M16 8l-4-4-4 4v10l4 4 4-4V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ story.author.get_full_name }}</td>
+                        <td>
+                            <div class="category-tags">
+                                {% for category in story.categories.all %}
+                                <span class="category-tag">{{ category.name }}</span>
+                                {% empty %}
+                                <span class="text-muted">None</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>{{ story.get_language_display }}</td>
+                        <td>
+                            <span class="status-badge status-{{ story.status|lower }}">{{ story.get_status_display }}</span>
+                        </td>
+                        <td>{{ story.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{% url 'newsroom:story_detail' story_id=story.id %}" class="btn btn-sm btn-icon btn-outline" title="View">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                
+                                {% if user.is_staff %}
+                                <a href="{% url 'newsroom:story_edit' story_id=story.id %}" class="btn btn-sm btn-icon btn-outline" title="Edit">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                                
+                                {% if story.status != 'PUBLISHED' and user.is_sub_editor_or_above %}
+                                <a href="{% url 'newsroom:story_publish' story_id=story.id %}" class="btn btn-sm btn-icon btn-outline" title="Publish">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="empty-table">
+                            <div class="empty-state">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p>No stories found.</p>
+                                <a href="{% url 'newsroom:story_create' %}" class="btn btn-primary mt-3">Create Story</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if language_filter %}language={{ language_filter }}&{% endif %}page={{ page_obj.previous_page_number }}" class="pagination-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="pagination-item pagination-current">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if language_filter %}language={{ language_filter }}&{% endif %}page={{ num }}" class="pagination-item">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if language_filter %}language={{ language_filter }}&{% endif %}page={{ page_obj.next_page_number }}" class="pagination-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filters-container {
+        width: 100%;
+    }
+    
+    .filters-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: center;
+    }
+    
+    .search-container {
+        position: relative;
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 8px 36px 8px 12px;
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+    }
+    
+    .search-button {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        padding: 0 12px;
+        background: none;
+        border: none;
+        color: var(--color-text-light);
+        cursor: pointer;
+    }
+    
+    .filter-selects {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-select {
+        padding: 8px 12px;
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+        background-color: var(--color-background);
+    }
+    
+    .clear-filters {
+        color: var(--color-text-light);
+        font-size: 0.875rem;
+    }
+    
+    .story-title {
+        display: flex;
+        align-items: center;
+        font-weight: 500;
+        color: var(--color-text);
+    }
+    
+    .audio-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        margin-left: 8px;
+        border-radius: 50%;
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary);
+    }
+    
+    .category-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .category-tag {
+        display: inline-block;
+        padding: 2px 6px;
+        font-size: 0.75rem;
+        border-radius: 3px;
+        background-color: var(--color-gray-200);
+        color: var(--color-text);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-draft {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .status-review {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+    }
+    
+    .status-approved {
+        background-color: rgba(23, 162, 184, 0.1);
+        color: #17a2b8;
+    }
+    
+    .status-published {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--color-success);
+    }
+    
+    .status-archived {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+    
+    .table-actions {
+        display: flex;
+        gap: 4px;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 24px;
+    }
+    
+    .pagination-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin: 0 4px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--color-gray-200);
+    }
+    
+    .pagination-current {
+        background-color: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
+    }
+    
+    .text-muted {
+        color: var(--color-text-light);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--color-text-light);
+    }
+    
+    .empty-state svg {
+        margin: 0 auto 16px;
+        color: var(--color-gray-300);
+    }
+    
+    .mt-3 {
+        margin-top: 12px;
+    }
+    
+    @media (max-width: 992px) {
+        .filters-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}

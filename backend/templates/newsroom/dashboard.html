@@ -1,0 +1,611 @@
+<!-- newsroom/templates/newsroom/dashboard.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Dashboard - Newskoop{% endblock %}
+
+{% block page_title %}Newsroom Dashboard{% endblock %}
+
+{% block page_actions %}
+<div class="dashboard-actions">
+    {% if user.is_staff %}
+    <a href="{% url 'newsroom:story_create' %}" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        New Story
+    </a>
+    {% endif %}
+    
+    {% if user.is_sub_editor_or_above %}
+    <div class="dropdown">
+        <button class="btn btn-outline dropdown-toggle" id="create-dropdown-toggle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Create Other
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="dropdown-arrow">
+                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <div class="dropdown-menu" id="create-dropdown-menu">
+            <a href="{% url 'newsroom:bulletin_create' %}" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 2H9a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                New Bulletin
+            </a>
+            <a href="{% url 'newsroom:show_create' %}" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 18l8-12M9 7l.949-1.265a2 2 0 012.77-.307L15 7M23 19v-7.83a2 2 0 00-.877-1.656l-7.417-5.29a2 2 0 00-2.248-.009l-7.546 5.313A2 2 0 004 11.153V19a2 2 0 002 2h15a2 2 0 002-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                New Show
+            </a>
+            <a href="{% url 'newsroom:task_create' %}" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 12h6M9 16h6M9 8h6M5 8h.01M5 12h.01M5 16h.01M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                New Task
+            </a>
+            <a href="{% url 'newsroom:category_create' %}" class="dropdown-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.93a2 2 0 01-1.66-.9l-.82-1.2A2 2 0 007.93 3H4a2 2 0 00-2 2v13c0 1.1.9 2 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                New Category
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ story_count }}</div>
+                <div class="stat-label">Total Stories</div>
+            </div>
+            <div class="stat-detail">
+                <div class="stat-detail-item">
+                    <div class="detail-label">Published:</div>
+                    <div class="detail-value">{{ published_story_count }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 2H9a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ bulletin_count }}</div>
+                <div class="stat-label">Bulletins</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 18l8-12M9 7l.949-1.265a2 2 0 012.77-.307L15 7M23 19v-7.83a2 2 0 00-.877-1.656l-7.417-5.29a2 2 0 00-2.248-.009l-7.546 5.313A2 2 0 004 11.153V19a2 2 0 002 2h15a2 2 0 002-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ show_count }}</div>
+                <div class="stat-label">Shows</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Sections -->
+    <div class="dashboard-sections">
+        <!-- My Tasks Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2 class="section-title">My Tasks</h2>
+                <a href="{% url 'newsroom:my_tasks' %}" class="section-action">View All</a>
+            </div>
+            
+            <div class="task-list">
+                {% for task in user_tasks %}
+                <div class="task-item">
+                    <div class="task-status">
+                        <span class="status-indicator status-{{ task.status|lower }}"></span>
+                    </div>
+                    <div class="task-content">
+                        <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="task-title">{{ task.title }}</a>
+                        <div class="task-meta">
+                            <span class="task-type">{{ task.get_task_type_display }}</span>
+                            {% if task.due_date %}
+                            <span class="task-due {% if task.due_date < now %}overdue{% endif %}">
+                                Due: {{ task.due_date|date:"M d" }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>You have no active tasks.</p>
+                    {% if user.is_sub_editor_or_above %}
+                    <a href="{% url 'newsroom:task_create' %}" class="btn btn-sm btn-primary mt-2">Create Task</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Recent Stories Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Stories</h2>
+                <a href="{% url 'newsroom:story_list' %}" class="section-action">View All</a>
+            </div>
+            
+            <div class="content-list">
+                {% for story in recent_stories %}
+                <div class="content-item">
+                    <div class="content-status">
+                        <span class="status-indicator status-{{ story.status|lower }}"></span>
+                    </div>
+                    <div class="content-details">
+                        <a href="{% url 'newsroom:story_detail' story_id=story.id %}" class="content-title">{{ story.title }}</a>
+                        <div class="content-meta">
+                            <span class="content-author">By {{ story.author.get_full_name }}</span>
+                            <span class="content-date">{{ story.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>No stories have been created yet.</p>
+                    {% if user.is_staff %}
+                    <a href="{% url 'newsroom:story_create' %}" class="btn btn-sm btn-primary mt-2">Create Story</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Recent Bulletins Section -->
+        <div class="dashboard-section">
+            <div class="section-header">
+                <h2 class="section-title">Recent Bulletins</h2>
+                <a href="{% url 'newsroom:bulletin_list' %}" class="section-action">View All</a>
+            </div>
+            
+            <div class="content-list">
+                {% for bulletin in recent_bulletins %}
+                <div class="content-item">
+                    <div class="content-status">
+                        <span class="status-indicator status-{{ bulletin.status|lower }}"></span>
+                    </div>
+                    <div class="content-details">
+                        <a href="{% url 'newsroom:bulletin_detail' bulletin_id=bulletin.id %}" class="content-title">{{ bulletin.title }}</a>
+                        <div class="content-meta">
+                            <span class="content-author">By {{ bulletin.editor.get_full_name }}</span>
+                            <span class="content-date">{{ bulletin.created_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>No bulletins have been created yet.</p>
+                    {% if user.is_sub_editor_or_above %}
+                    <a href="{% url 'newsroom:bulletin_create' %}" class="btn btn-sm btn-primary mt-2">Create Bulletin</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Links -->
+    <div class="quick-links-section">
+        <h2 class="section-title">Quick Links</h2>
+        
+        <div class="quick-links">
+            <a href="{% url 'newsroom:my_tasks' %}" class="quick-link-card">
+                <div class="quick-link-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12h6M9 16h6M9 8h6M5 8h.01M5 12h.01M5 16h.01M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="quick-link-title">My Tasks</div>
+            </a>
+            
+            <a href="{% url 'newsroom:story_list' %}" class="quick-link-card">
+                <div class="quick-link-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="quick-link-title">Stories</div>
+            </a>
+            
+            <a href="{% url 'newsroom:bulletin_list' %}" class="quick-link-card">
+                <div class="quick-link-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 2H9a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="quick-link-title">Bulletins</div>
+            </a>
+            
+            <a href="{% url 'newsroom:show_list' %}" class="quick-link-card">
+                <div class="quick-link-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 18l8-12M9 7l.949-1.265a2 2 0 012.77-.307L15 7M23 19v-7.83a2 2 0 00-.877-1.656l-7.417-5.29a2 2 0 00-2.248-.009l-7.546 5.313A2 2 0 004 11.153V19a2 2 0 002 2h15a2 2 0 002-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="quick-link-title">Shows</div>
+            </a>
+            
+            <a href="{% url 'newsroom:translation_dashboard' %}" class="quick-link-card">
+                <div class="quick-link-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 5h12M10 5L7 17l-3-7m16-2l3 7-3-1m-.5-10L13 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="quick-link-title">Translations</div>
+            </a>
+            
+            {% if user.is_editor_or_above %}
+            <a href="{% url 'newsroom:category_list' %}" class="quick-link-card">
+                <div class="quick-link-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.93a2 2 0 01-1.66-.9l-.82-1.2A2 2 0 007.93 3H4a2 2 0 00-2 2v13c0 1.1.9 2 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="quick-link-title">Categories</div>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .dashboard-actions {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .dropdown {
+        position: relative;
+    }
+    
+    .dropdown-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .dropdown-arrow {
+        transition: transform 0.2s ease;
+    }
+    
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        z-index: 10;
+        min-width: 200px;
+        margin-top: 8px;
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        display: none;
+    }
+    
+    .dropdown-menu.active {
+        display: block;
+    }
+    
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        color: var(--color-text);
+    }
+    
+    .dropdown-item:hover {
+        background-color: var(--color-gray-100);
+    }
+    
+    .stats-overview {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    
+    .stat-card {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .stat-icon {
+        margin-bottom: 16px;
+        color: var(--color-primary);
+    }
+    
+    .stat-info {
+        margin-bottom: 16px;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 8px;
+    }
+    
+    .stat-label {
+        font-size: 0.875rem;
+        color: var(--color-text-light);
+    }
+    
+    .stat-detail {
+        width: 100%;
+        padding-top: 16px;
+        border-top: 1px solid var(--color-gray-300);
+    }
+    
+    .stat-detail-item {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.875rem;
+    }
+    
+    .detail-label {
+        color: var(--color-text-light);
+    }
+    
+    .detail-value {
+        font-weight: 500;
+    }
+    
+    .dashboard-sections {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    
+    .dashboard-section {
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .section-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .section-action {
+        font-size: 0.875rem;
+        color: var(--color-primary);
+    }
+    
+    .task-list,
+    .content-list {
+        padding: 8px;
+    }
+    
+    .task-item,
+    .content-item {
+        display: flex;
+        padding: 12px;
+        border-radius: var(--border-radius);
+        margin-bottom: 8px;
+    }
+    
+    .task-item:hover,
+    .content-item:hover {
+        background-color: var(--color-gray-100);
+    }
+    
+    .task-status,
+    .content-status {
+        padding-right: 16px;
+    }
+    
+    .status-indicator {
+        display: block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-top: 4px;
+    }
+    
+    .status-todo {
+        background-color: #6c757d;
+    }
+    
+    .status-in_progress {
+        background-color: #17a2b8;
+    }
+    
+    .status-review {
+        background-color: #ffc107;
+    }
+    
+    .status-approved {
+        background-color: #28a745;
+    }
+    
+    .status-published {
+        background-color: #28a745;
+    }
+    
+    .status-completed {
+        background-color: #28a745;
+    }
+    
+    .status-cancelled,
+    .status-archived {
+        background-color: #6c757d;
+    }
+    
+    .task-content,
+    .content-details {
+        flex: 1;
+    }
+    
+    .task-title,
+    .content-title {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: var(--color-text);
+    }
+    
+    .task-meta,
+    .content-meta {
+        display: flex;
+        gap: 12px;
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .task-due.overdue {
+        color: var(--color-danger);
+        font-weight: 500;
+    }
+    
+    .quick-links-section {
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        padding: 20px;
+    }
+    
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+    
+    .quick-link-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        border-radius: var(--border-radius);
+        background-color: var(--color-gray-100);
+        transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+    
+    .quick-link-card:hover {
+        background-color: var(--color-gray-200);
+        transform: translateY(-2px);
+    }
+    
+    .quick-link-icon {
+        color: var(--color-primary);
+        margin-bottom: 12px;
+    }
+    
+    .quick-link-title {
+        font-weight: 500;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 24px;
+        color: var(--color-text-light);
+    }
+    
+    .mt-2 {
+        margin-top: 8px;
+    }
+    
+    @media (max-width: 1200px) {
+        .dashboard-sections {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+    
+    @media (max-width: 992px) {
+        .stats-overview {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-sections {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle dropdown menu
+        const dropdownToggle = document.getElementById('create-dropdown-toggle');
+        const dropdownMenu = document.getElementById('create-dropdown-menu');
+        const dropdownArrow = document.querySelector('.dropdown-arrow');
+        
+        if (dropdownToggle) {
+            dropdownToggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                dropdownMenu.classList.toggle('active');
+                dropdownArrow.style.transform = dropdownMenu.classList.contains('active') ? 'rotate(180deg)' : 'rotate(0)';
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                if (dropdownMenu.classList.contains('active')) {
+                    dropdownMenu.classList.remove('active');
+                    dropdownArrow.style.transform = 'rotate(0)';
+                }
+            });
+            
+            // Prevent dropdown from closing when clicking inside the menu
+            dropdownMenu.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,311 @@
+<!-- newsroom/templates/newsroom/stories/story_create.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Create Story - Newskoop{% endblock %}
+
+{% block page_title %}Create Story{% endblock %}
+
+{% block page_actions %}
+<button type="submit" form="story-form" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M17 21v-8h-2v8M7 7h7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Save Story
+</button>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">New Story</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form id="story-form" method="post" action="{% url 'newsroom:story_create' %}">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <!-- Left Column - Main Content -->
+                <div class="form-main">
+                    <div class="form-group">
+                        <label for="title" class="form-label">Story Title <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="content" class="form-label">Content <span class="required">*</span></label>
+                        <textarea id="content" name="content" class="form-control editor" rows="12"></textarea>
+                        <div class="editor-toolbar">
+                            <button type="button" class="editor-btn" data-command="bold" title="Bold">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6zM6 12h9a4 4 0 014 4 4 4 0 01-4 4H6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="italic" title="Italic">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M19 4h-9M14 20H5M15 4L9 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertUnorderedList" title="Bullet List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="editor-btn" data-command="insertOrderedList" title="Numbered List">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 6h11M10 12h11M10 18h11M4 6h1v4M4 10h2M4 18h2M4 14h1v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <span class="editor-spacer"></span>
+                            <span class="word-count">0 words</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Metadata -->
+                <div class="form-meta">
+                    <div class="meta-section">
+                        <h3 class="meta-title">Story Details</h3>
+                        
+                        <div class="form-group">
+                            <label for="language" class="form-label">Language <span class="required">*</span></label>
+                            <select id="language" name="language" class="form-control" required>
+                                {% for code, name in language_choices %}
+                                <option value="{{ code }}" {% if code == 'EN' %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Categories</label>
+                            <div class="category-list">
+                                {% for category in categories %}
+                                <div class="category-item">
+                                    <input type="checkbox" id="category_{{ category.id }}" name="categories" value="{{ category.id }}">
+                                    <label for="category_{{ category.id }}">{{ category.name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="author-info">
+                        <p>You are creating this story as: <strong>{{ user.get_full_name }}</strong></p>
+                        <p>The story will be saved as a draft. You can submit it for review when ready.</p>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .required {
+        color: var(--color-danger);
+    }
+    
+    .editor {
+        min-height: 400px;
+        font-family: var(--font-family);
+        line-height: 1.5;
+    }
+    
+    .editor-toolbar {
+        display: flex;
+        gap: 8px;
+        padding: 8px;
+        background-color: var(--color-gray-100);
+        border: 1px solid var(--color-gray-300);
+        border-top: none;
+        border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
+    
+    .editor-btn {
+        background: none;
+        border: none;
+        padding: 4px 8px;
+        cursor: pointer;
+        border-radius: var(--border-radius);
+    }
+    
+    .editor-btn:hover {
+        background-color: var(--color-gray-200);
+    }
+    
+    .editor-btn.active {
+        background-color: var(--color-primary);
+        color: white;
+    }
+    
+    .editor-spacer {
+        flex: 1;
+    }
+    
+    .word-count {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+        display: flex;
+        align-items: center;
+    }
+    
+    .meta-section {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .meta-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .category-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+        padding: 8px;
+    }
+    
+    .category-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+    }
+    
+    .author-info {
+        background-color: rgba(111, 179, 22, 0.1);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        font-size: 0.875rem;
+    }
+    
+    .author-info p {
+        margin: 0 0 8px 0;
+    }
+    
+    .author-info p:last-child {
+        margin-bottom: 0;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    @media (max-width: 992px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Basic rich text editor
+        const contentArea = document.getElementById('content');
+        const editorButtons = document.querySelectorAll('.editor-btn');
+        const wordCount = document.querySelector('.word-count');
+        
+        // Make content area editable
+        contentArea.setAttribute('contenteditable', 'true');
+        
+        // Execute formatting commands
+        editorButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const command = this.getAttribute('data-command');
+                document.execCommand(command, false, null);
+                contentArea.focus();
+                
+                // Toggle active state for buttons
+                if (['bold', 'italic'].includes(command)) {
+                    this.classList.toggle('active');
+                }
+            });
+        });
+        
+        // Update word count
+        function updateWordCount() {
+            const text = contentArea.innerText || '';
+            const count = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            wordCount.textContent = `${count} words`;
+        }
+        
+        contentArea.addEventListener('input', updateWordCount);
+        updateWordCount(); // Initial count
+        
+        // Update hidden textarea with HTML content before form submission
+        const storyForm = document.getElementById('story-form');
+        storyForm.addEventListener('submit', function() {
+            document.getElementById('content').value = contentArea.innerHTML;
+        });
+        
+        // Required field validation
+        storyForm.addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const content = contentArea.innerHTML.trim();
+            
+            if (!title) {
+                e.preventDefault();
+                alert('Please enter a story title.');
+                return;
+            }
+            
+            if (!content) {
+                e.preventDefault();
+                alert('Please enter story content.');
+                return;
+            }
+        });
+    });
+</script>
+{% endblock %}

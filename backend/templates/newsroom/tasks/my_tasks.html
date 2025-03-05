@@ -1,0 +1,575 @@
+<!-- newsroom/templates/newsroom/tasks/my_tasks.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}My Tasks - Newskoop{% endblock %}
+
+{% block page_title %}My Tasks{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'newsroom:task_list' %}" class="btn btn-outline">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M11 17l-5-5 5-5M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    All Tasks
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="my-tasks-container">
+    {% if messages %}
+    <div class="alerts mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="tasks-grid">
+        <!-- To-Do Tasks -->
+        <div class="task-column">
+            <div class="task-column-header todo">
+                <div class="column-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12h6M9 16h6M9 8h6M5 8h.01M5 12h.01M5 16h.01M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    To Do
+                </div>
+                <div class="column-count">{{ todo_tasks.count }}</div>
+            </div>
+            
+            <div class="task-list">
+                {% for task in todo_tasks %}
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-type">{{ task.get_task_type_display }}</div>
+                        {% if task.due_date %}
+                        <div class="task-due-date {% if task.due_date < now %}overdue{% endif %}">
+                            Due: {{ task.due_date|date:"M d" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="task-title">{{ task.title }}</a>
+                    
+                    <div class="task-meta">
+                        <div class="task-assignee">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            From: {{ task.assigned_by.get_full_name }}
+                        </div>
+                        
+                        <div class="task-date">{{ task.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    
+                    <div class="task-actions">
+                        <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="btn btn-sm btn-outline">View Details</a>
+                        <a href="#" class="btn btn-sm btn-primary start-task-btn" data-task-id="{{ task.id }}">Start Task</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-column">
+                    <p>No to-do tasks.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- In Progress Tasks -->
+        <div class="task-column">
+            <div class="task-column-header in-progress">
+                <div class="column-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    In Progress
+                </div>
+                <div class="column-count">{{ in_progress_tasks.count }}</div>
+            </div>
+            
+            <div class="task-list">
+                {% for task in in_progress_tasks %}
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-type">{{ task.get_task_type_display }}</div>
+                        {% if task.due_date %}
+                        <div class="task-due-date {% if task.due_date < now %}overdue{% endif %}">
+                            Due: {{ task.due_date|date:"M d" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="task-title">{{ task.title }}</a>
+                    
+                    <div class="task-meta">
+                        <div class="task-assignee">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            From: {{ task.assigned_by.get_full_name }}
+                        </div>
+                        
+                        <div class="task-date">{{ task.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    
+                    <div class="task-actions">
+                        <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="btn btn-sm btn-outline">View Details</a>
+                        <a href="#" class="btn btn-sm btn-primary complete-task-btn" data-task-id="{{ task.id }}">Mark Complete</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-column">
+                    <p>No tasks in progress.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- In Review Tasks -->
+        <div class="task-column">
+            <div class="task-column-header review">
+                <div class="column-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    In Review
+                </div>
+                <div class="column-count">{{ review_tasks.count }}</div>
+            </div>
+            
+            <div class="task-list">
+                {% for task in review_tasks %}
+                <div class="task-card">
+                    <div class="task-header">
+                        <div class="task-type">{{ task.get_task_type_display }}</div>
+                        {% if task.due_date %}
+                        <div class="task-due-date {% if task.due_date < now %}overdue{% endif %}">
+                            Due: {{ task.due_date|date:"M d" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="task-title">{{ task.title }}</a>
+                    
+                    <div class="task-meta">
+                        <div class="task-assignee">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            From: {{ task.assigned_by.get_full_name }}
+                        </div>
+                        
+                        <div class="task-date">{{ task.created_at|date:"M d, Y" }}</div>
+                    </div>
+                    
+                    <div class="task-actions">
+                        <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="btn btn-sm btn-outline">View Details</a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="empty-column">
+                    <p>No tasks in review.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recently Completed Tasks -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="card-title">Recently Completed Tasks</h3>
+        </div>
+        
+        <div class="card-content">
+            <div class="completed-tasks">
+                {% for task in completed_tasks %}
+                <div class="completed-task-item">
+                    <div class="completed-task-info">
+                        <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="completed-task-title">{{ task.title }}</a>
+                        <div class="completed-task-meta">
+                            <span class="task-type-badge">{{ task.get_task_type_display }}</span>
+                            <span class="completed-date">Completed on {{ task.completed_at|date:"M d, Y" }}</span>
+                        </div>
+                    </div>
+                    <a href="{% url 'newsroom:task_detail' task_id=task.id %}" class="btn btn-sm btn-icon btn-outline" title="View">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="empty-state">
+                    <p>No completed tasks.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal" id="status-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Update Task Status</h3>
+                <button type="button" class="modal-close" data-dismiss="modal" aria-label="Close">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <form method="post" action="" id="status-form">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="status" name="status" value="">
+                    
+                    <div class="form-group">
+                        <label for="note" class="form-label">Add a Note (Optional)</label>
+                        <textarea id="note" name="note" class="form-control" rows="3" placeholder="Add any notes about this status change..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .my-tasks-container {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .tasks-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    
+    .task-column {
+        background-color: var(--color-gray-100);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .task-column-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .task-column-header.todo {
+        background-color: rgba(108, 117, 125, 0.1);
+    }
+    
+    .task-column-header.in-progress {
+        background-color: rgba(23, 162, 184, 0.1);
+    }
+    
+    .task-column-header.review {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+    
+    .column-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+    }
+    
+    .column-count {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 12px;
+        background-color: var(--color-gray-200);
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .task-card {
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .task-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .task-type {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--color-text-light);
+        background-color: var(--color-gray-200);
+        padding: 2px 8px;
+        border-radius: 12px;
+    }
+    
+    .task-due-date {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .task-due-date.overdue {
+        color: var(--color-danger);
+        font-weight: 500;
+    }
+    
+    .task-title {
+        font-weight: 500;
+        color: var(--color-text);
+        font-size: 1rem;
+    }
+    
+    .task-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .task-assignee {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .task-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    
+    .completed-tasks {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .completed-task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .completed-task-item:last-child {
+        border-bottom: none;
+    }
+    
+    .completed-task-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .completed-task-title {
+        font-weight: 500;
+        color: var(--color-text);
+    }
+    
+    .completed-task-meta {
+        display: flex;
+        gap: 8px;
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .task-type-badge {
+        background-color: var(--color-gray-200);
+        padding: 2px 8px;
+        border-radius: 12px;
+    }
+    
+    .empty-column {
+        text-align: center;
+        padding: 24px 0;
+        color: var(--color-text-light);
+        font-size: 0.875rem;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 24px;
+        color: var(--color-text-light);
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    .mt-4 {
+        margin-top: 16px;
+    }
+    
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+    }
+    
+    .modal.active {
+        display: flex;
+    }
+    
+    .modal-dialog {
+        width: 100%;
+        max-width: 500px;
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        background-color: var(--color-background);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        color: var(--color-text-light);
+    }
+    
+    .modal-body {
+        padding: 16px;
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 16px;
+        border-top: 1px solid var(--color-gray-200);
+    }
+    
+    @media (max-width: 992px) {
+        .tasks-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+        
+        // Status update buttons
+        const startTaskBtns = document.querySelectorAll('.start-task-btn');
+        const completeTaskBtns = document.querySelectorAll('.complete-task-btn');
+        const statusModal = document.getElementById('status-modal');
+        const statusForm = document.getElementById('status-form');
+        const statusInput = document.getElementById('status');
+        const closeButtons = document.querySelectorAll('[data-dismiss="modal"]');
+        
+        // Start task button (ToDo -> In Progress)
+        startTaskBtns.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const taskId = this.getAttribute('data-task-id');
+                statusForm.action = `/newsroom/tasks/${taskId}/update-status/`;
+                statusInput.value = 'IN_PROGRESS';
+                statusModal.classList.add('active');
+                document.body.classList.add('modal-open');
+            });
+        });
+        
+        // Complete task button (In Progress -> Completed)
+        completeTaskBtns.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const taskId = this.getAttribute('data-task-id');
+                statusForm.action = `/newsroom/tasks/${taskId}/update-status/`;
+                statusInput.value = 'COMPLETED';
+                statusModal.classList.add('active');
+                document.body.classList.add('modal-open');
+            });
+        });
+        
+        // Close modal
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                statusModal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            });
+        });
+        
+        // Close when clicking outside modal
+        statusModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            }
+        });
+    });
+</script>
+{% endblock %}

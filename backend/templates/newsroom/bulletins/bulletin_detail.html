@@ -1,0 +1,523 @@
+<!-- newsroom/templates/newsroom/bulletins/bulletin_detail.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}{{ bulletin.title }} - Newskoop{% endblock %}
+
+{% block page_title %}{{ bulletin.title }}{% endblock %}
+
+{% block page_actions %}
+<div class="button-group">
+    {% if can_edit %}
+    <a href="{% url 'newsroom:bulletin_edit' bulletin_id=bulletin.id %}" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Edit Bulletin
+    </a>
+    {% endif %}
+    
+    {% if bulletin.status != 'PUBLISHED' and can_publish %}
+    <form method="post" action="{% url 'newsroom:bulletin_publish' bulletin_id=bulletin.id %}" class="inline-form">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-success">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Publish Bulletin
+        </button>
+    </form>
+    {% endif %}
+    
+    {% if bulletin.language == 'EN' %}
+    <a href="{% url 'newsroom:bulletin_translate' bulletin_id=bulletin.id %}" class="btn btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 5h12M10 5L7 17l-3-7m16-2l3 7-3-1m-.5-10L13 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Translate
+    </a>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="bulletin-detail">
+    {% if messages %}
+    <div class="alerts mb-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+            <button class="alert-close">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="bulletin-content-container">
+        <!-- Main Bulletin Content -->
+        <div class="card bulletin-content">
+            <div class="card-header">
+                <div class="bulletin-metadata">
+                    <div class="metadata-item">
+                        <span class="metadata-label">Editor:</span>
+                        <span class="metadata-value">{{ bulletin.editor.get_full_name }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Created:</span>
+                        <span class="metadata-value">{{ bulletin.created_at|date:"F j, Y" }}</span>
+                    </div>
+                    <div class="metadata-item">
+                        <span class="metadata-label">Status:</span>
+                        <span class="metadata-value">
+                            <span class="status-badge status-{{ bulletin.status|lower }}">{{ bulletin.get_status_display }}</span>
+                        </span>
+                    </div>
+                    {% if bulletin.status == 'PUBLISHED' %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Published:</span>
+                        <span class="metadata-value">{{ bulletin.published_at|date:"F j, Y" }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="metadata-item">
+                        <span class="metadata-label">Language:</span>
+                        <span class="metadata-value">{{ bulletin.get_language_display }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-content">
+                <div class="bulletin-section intro-section">
+                    <h3 class="section-title">Introduction</h3>
+                    <div class="section-content">{{ bulletin.intro|linebreaks }}</div>
+                </div>
+                
+                <div class="bulletin-section stories-section">
+                    <h3 class="section-title">Stories</h3>
+                    <div class="stories-list">
+                        {% for bulletin_story in bulletin_stories %}
+                        <div class="story-item">
+                            <h4 class="story-title">
+                                <a href="{% url 'newsroom:story_detail' story_id=bulletin_story.story.id %}" target="_blank">
+                                    {{ bulletin_story.story.title }}
+                                </a>
+                            </h4>
+                            
+                            <div class="story-content">
+                                {% if bulletin_story.story.content %}
+                                {{ bulletin_story.story.content.content|safe|truncatewords_html:50 }}
+                                {% endif %}
+                                <a href="{% url 'newsroom:story_detail' story_id=bulletin_story.story.id %}" class="read-more" target="_blank">Read full story</a>
+                            </div>
+                            
+                            {% if bulletin_story.story.audio_clips.exists %}
+                            <div class="story-audio">
+                                <h5 class="audio-title">Audio Clips</h5>
+                                <div class="audio-list">
+                                    {% for clip in bulletin_story.story.audio_clips.all %}
+                                    <div class="audio-item">
+                                        <div class="audio-details">
+                                            <span class="audio-name">{{ clip.title }}</span>
+                                        </div>
+                                        <div class="audio-player">
+                                            <audio controls>
+                                                <source src="{{ clip.file.url }}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="empty-state small">
+                            <p>No stories have been added to this bulletin.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if bulletin.outro %}
+                <div class="bulletin-section outro-section">
+                    <h3 class="section-title">Conclusion</h3>
+                    <div class="section-content">{{ bulletin.outro|linebreaks }}</div>
+                </div>
+                {% endif %}
+                
+                {% if bulletin.categories.exists %}
+                <div class="bulletin-categories">
+                    <span class="categories-label">Categories:</span>
+                    <div class="category-tags">
+                        {% for category in bulletin.categories.all %}
+                        <span class="category-tag">{{ category.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar Information -->
+        <div class="bulletin-sidebar">
+            <!-- Print View Button -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">Print View</h3>
+                </div>
+                
+                <div class="card-content">
+                    <a href="javascript:window.print();" class="btn btn-outline btn-block">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 14h12v8H6v-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Print Bulletin
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Translations Section -->
+            {% if translations %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">Translations</h3>
+                </div>
+                
+                <div class="card-content">
+                    <div class="translations-list">
+                        {% for translation in translations %}
+                        <a href="{% url 'newsroom:bulletin_detail' bulletin_id=translation.id %}" class="translation-item">
+                            <span class="translation-language">{{ translation.get_language_display }}</span>
+                            <span class="translation-status status-badge status-{{ translation.status|lower }}">{{ translation.get_status_display }}</span>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Original Bulletin Link (if this is a translation) -->
+            {% if bulletin.original_bulletin %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h3 class="card-title">Original Bulletin</h3>
+                </div>
+                
+                <div class="card-content">
+                    <a href="{% url 'newsroom:bulletin_detail' bulletin_id=bulletin.original_bulletin.id %}" class="original-link">
+                        <span class="original-language">{{ bulletin.original_bulletin.get_language_display }}</span>
+                        <span class="original-title">{{ bulletin.original_bulletin.title }}</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bulletin-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .bulletin-content-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 24px;
+    }
+    
+    .bulletin-content {
+        overflow: hidden;
+    }
+    
+    .bulletin-metadata {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px 24px;
+    }
+    
+    .metadata-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .metadata-label {
+        font-weight: 500;
+        color: var(--color-text-light);
+    }
+    
+    .bulletin-section {
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .bulletin-section:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--color-text);
+    }
+    
+    .section-content {
+        line-height: 1.6;
+    }
+    
+    .section-content p {
+        margin-bottom: 1em;
+    }
+    
+    .stories-list {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .story-item {
+        padding: 20px;
+        border-radius: var(--border-radius);
+        background-color: var(--color-gray-100);
+    }
+    
+    .story-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .story-content {
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+    
+    .read-more {
+        display: inline-block;
+        margin-top: 8px;
+        font-weight: 500;
+    }
+    
+    .story-audio {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--color-gray-200);
+    }
+    
+    .audio-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .audio-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .audio-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .audio-name {
+        font-weight: 500;
+        font-size: 0.875rem;
+    }
+    
+    .audio-player {
+        width: 100%;
+    }
+    
+    .audio-player audio {
+        width: 100%;
+        height: 32px;
+    }
+    
+    .bulletin-categories {
+        display: flex;
+        gap: 16px;
+        margin-top: 24px;
+        align-items: center;
+    }
+    
+    .categories-label {
+        font-weight: 500;
+        color: var(--color-text-light);
+    }
+    
+    .category-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .category-tag {
+        display: inline-block;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        border-radius: 4px;
+        background-color: var(--color-gray-200);
+        color: var(--color-text);
+    }
+    
+    .btn-block {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .translations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .translation-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 12px;
+        border-radius: var(--border-radius);
+        background-color: var(--color-gray-100);
+    }
+    
+    .translation-item:hover {
+        background-color: var(--color-gray-200);
+    }
+    
+    .original-link {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px 12px;
+        border-radius: var(--border-radius);
+        background-color: var(--color-gray-100);
+    }
+    
+    .original-link:hover {
+        background-color: var(--color-gray-200);
+    }
+    
+    .original-language {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .original-title {
+        font-weight: 500;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    .empty-state.small {
+        padding: 16px;
+        text-align: center;
+        color: var(--color-text-light);
+        font-size: 0.875rem;
+    }
+    
+    .inline-form {
+        display: inline;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .btn-success {
+        background-color: var(--color-success);
+        color: white;
+    }
+    
+    .btn-success:hover {
+        background-color: #218838;
+    }
+    
+    @media (max-width: 992px) {
+        .bulletin-content-container {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Print styles */
+    @media print {
+        .sidebar, .top-nav, .nav-section, .page-actions, .bulletin-sidebar, .audio-player {
+            display: none !important;
+        }
+        
+        .bulletin-content-container {
+            display: block;
+            width: 100%;
+        }
+        
+        .card {
+            box-shadow: none;
+            border: none;
+        }
+        
+        .card-header {
+            border-bottom: 1px solid #000;
+        }
+        
+        .section-title {
+            font-size: 14pt;
+        }
+        
+        .story-title {
+            font-size: 12pt;
+        }
+        
+        .story-item {
+            page-break-inside: avoid;
+            break-inside: avoid;
+            border: 1px solid #ccc;
+            margin-bottom: 1em;
+        }
+        
+        a {
+            text-decoration: none;
+            color: #000;
+        }
+        
+        .read-more {
+            display: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}

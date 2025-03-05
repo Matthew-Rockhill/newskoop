@@ -1,0 +1,330 @@
+<!-- newsroom/templates/newsroom/dashboard/dashboard.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Newsroom Dashboard - Newskoop{% endblock %}
+
+{% block page_title %}Newsroom Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    <!-- Stats Cards -->
+    <div class="stats-row">
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Stories</h3>
+                    <p class="stat-value">{{ story_count }}</p>
+                    <p class="stat-info">{{ published_story_count }} published</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 2H9a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Bulletins</h3>
+                    <p class="stat-value">{{ bulletin_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card stat-card">
+            <div class="card-content">
+                <div class="stat-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 8l6 4-6 4V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="stat-details">
+                    <h3 class="stat-title">Shows</h3>
+                    <p class="stat-value">{{ show_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Content and Tasks -->
+    <div class="dashboard-columns">
+        <div class="column">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Your Tasks</h2>
+                    <a href="{% url 'newsroom:my_tasks' %}" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div class="card-content">
+                    {% if user_tasks %}
+                    <div class="task-list">
+                        {% for task in user_tasks %}
+                        <div class="task-item">
+                            <div class="task-status">
+                                <span class="status-badge status-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+                            </div>
+                            <div class="task-content">
+                                <h3 class="task-title">
+                                    <a href="{% url 'newsroom:task_detail' task_id=task.id %}">{{ task.title }}</a>
+                                </h3>
+                                <div class="task-meta">
+                                    <span class="task-type">{{ task.get_task_type_display }}</span>
+                                    {% if task.due_date %}
+                                    <span class="task-due">Due: {{ task.due_date|date:"M d, Y" }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>You have no pending tasks.</p>
+                        <a href="{% url 'newsroom:task_create' %}" class="btn btn-primary mt-3">Create Task</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="column">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Stories</h2>
+                    <a href="{% url 'newsroom:story_list' %}" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div class="card-content">
+                    {% if recent_stories %}
+                    <div class="content-list">
+                        {% for story in recent_stories %}
+                        <div class="content-item">
+                            <h3 class="content-title">
+                                <a href="{% url 'newsroom:story_detail' story_id=story.id %}">{{ story.title }}</a>
+                            </h3>
+                            <div class="content-meta">
+                                <span class="content-author">By: {{ story.author.get_full_name }}</span>
+                                <span class="content-date">{{ story.created_at|date:"M d, Y" }}</span>
+                                <span class="content-status">{{ story.get_status_display }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No stories have been created yet.</p>
+                        <a href="{% url 'newsroom:story_create' %}" class="btn btn-primary mt-3">Create Story</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Bulletins</h2>
+                    <a href="{% url 'newsroom:bulletin_list' %}" class="btn btn-sm btn-outline">View All</a>
+                </div>
+                <div class="card-content">
+                    {% if recent_bulletins %}
+                    <div class="content-list">
+                        {% for bulletin in recent_bulletins %}
+                        <div class="content-item">
+                            <h3 class="content-title">
+                                <a href="{% url 'newsroom:bulletin_detail' bulletin_id=bulletin.id %}">{{ bulletin.title }}</a>
+                            </h3>
+                            <div class="content-meta">
+                                <span class="content-author">By: {{ bulletin.editor.get_full_name }}</span>
+                                <span class="content-date">{{ bulletin.created_at|date:"M d, Y" }}</span>
+                                <span class="content-status">{{ bulletin.get_status_display }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <p>No bulletins have been created yet.</p>
+                        {% if user.is_sub_editor_or_above %}
+                        <a href="{% url 'newsroom:bulletin_create' %}" class="btn btn-primary mt-3">Create Bulletin</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+    
+    .stat-card {
+        height: 100%;
+    }
+    
+    .stat-card .card-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .stat-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: rgba(111, 179, 22, 0.1);
+        color: var(--color-primary);
+    }
+    
+    .stat-title {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--color-text-light);
+        margin-bottom: 4px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--color-text);
+        margin: 0;
+    }
+    
+    .stat-info {
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+        margin: 0;
+    }
+    
+    .dashboard-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .task-list, .content-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .task-item, .content-item {
+        padding: 12px;
+        border-radius: var(--border-radius);
+        background-color: var(--color-gray-100);
+    }
+    
+    .task-item {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .task-status {
+        padding-top: 4px;
+    }
+    
+    .task-content {
+        flex: 1;
+    }
+    
+    .task-title, .content-title {
+        font-size: 1rem;
+        font-weight: 500;
+        margin: 0 0 4px 0;
+    }
+    
+    .task-meta, .content-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 0.75rem;
+        color: var(--color-text-light);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+    
+    .status-todo {
+        background-color: rgba(51, 102, 255, 0.1);
+        color: #3366ff;
+    }
+    
+    .status-in_progress {
+        background-color: rgba(255, 170, 51, 0.1);
+        color: #ffaa33;
+    }
+    
+    .status-review {
+        background-color: rgba(153, 102, 255, 0.1);
+        color: #9966ff;
+    }
+    
+    .status-completed {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: var(--color-success);
+    }
+    
+    .status-cancelled {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: var(--color-danger);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 24px;
+        color: var(--color-text-light);
+    }
+    
+    .mt-3 {
+        margin-top: 12px;
+    }
+    
+    .mt-4 {
+        margin-top: 16px;
+    }
+    
+    @media (max-width: 992px) {
+        .stats-row {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .dashboard-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .stats-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,332 @@
+<!-- newsroom/templates/newsroom/categories/category_list.html -->
+{% extends "newsroom/base_newsroom.html" %}
+{% load static %}
+
+{% block title %}Categories - Newskoop{% endblock %}
+
+{% block page_title %}Categories{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'newsroom:category_create' %}" class="btn btn-primary">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Add Category
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">Content Categories</h2>
+    </div>
+    
+    <div class="card-content">
+        {% if messages %}
+        <div class="alert-container mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+                <button class="alert-close">&times;</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="category-hierarchy">
+            {% for parent_category in parent_categories %}
+            <div class="category-group">
+                <div class="category-parent">
+                    <div class="category-info">
+                        <h3 class="category-name">{{ parent_category.name }}</h3>
+                        <div class="category-meta">
+                            <span class="category-slug">{{ parent_category.slug }}</span>
+                        </div>
+                    </div>
+                    <div class="category-actions">
+                        <a href="{% url 'newsroom:category_edit' category_id=parent_category.id %}" class="btn btn-sm btn-icon btn-outline" title="Edit Category">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        {% if not parent_category.children.exists %}
+                        <a href="{% url 'newsroom:category_delete' category_id=parent_category.id %}" class="btn btn-sm btn-icon btn-outline" title="Delete Category">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if parent_category.children.exists %}
+                <div class="category-children">
+                    {% for child in parent_category.children.all %}
+                    <div class="category-child">
+                        <div class="category-info">
+                            <h4 class="category-name">{{ child.name }}</h4>
+                            <div class="category-meta">
+                                <span class="category-slug">{{ child.slug }}</span>
+                            </div>
+                        </div>
+                        <div class="category-actions">
+                            <a href="{% url 'newsroom:category_edit' category_id=child.id %}" class="btn btn-sm btn-icon btn-outline" title="Edit Category">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                            <a href="{% url 'newsroom:category_delete' category_id=child.id %}" class="btn btn-sm btn-icon btn-outline" title="Delete Category">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="empty-state">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.93a2 2 0 01-1.66-.9l-.82-1.2A2 2 0 007.93 3H4a2 2 0 00-2 2v13c0 1.1.9 2 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <p>No categories have been created yet.</p>
+                <a href="{% url 'newsroom:category_create' %}" class="btn btn-primary mt-3">Create Category</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h2 class="card-title">Category Access Reference</h2>
+    </div>
+    
+    <div class="card-content">
+        <p class="mb-4">Categories can be associated with specific content types for access control. The table below shows which categories grant access to specific content types.</p>
+        
+        <div class="access-grid">
+            <div class="access-row access-header">
+                <div class="access-cell">Category Flag</div>
+                <div class="access-cell">Grants Access To</div>
+                <div class="access-cell">Description</div>
+            </div>
+            
+            <div class="access-row">
+                <div class="access-cell">
+                    <code>is_news_story</code>
+                </div>
+                <div class="access-cell">News Stories</div>
+                <div class="access-cell">Individual news stories and reports</div>
+            </div>
+            
+            <div class="access-row">
+                <div class="access-cell">
+                    <code>is_news_bulletin</code>
+                </div>
+                <div class="access-cell">News Bulletins</div>
+                <div class="access-cell">Compiled bulletins containing multiple stories</div>
+            </div>
+            
+            <div class="access-row">
+                <div class="access-cell">
+                    <code>is_sport</code>
+                </div>
+                <div class="access-cell">Sports Content</div>
+                <div class="access-cell">Sports news, reports, and analysis</div>
+            </div>
+            
+            <div class="access-row">
+                <div class="access-cell">
+                    <code>is_finance</code>
+                </div>
+                <div class="access-cell">Finance Content</div>
+                <div class="access-cell">Financial news, reports, and analysis</div>
+            </div>
+            
+            <div class="access-row">
+                <div class="access-cell">
+                    <code>is_specialty</code>
+                </div>
+                <div class="access-cell">Specialty Content</div>
+                <div class="access-cell">Specialized content not in other categories</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-hierarchy {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .category-group {
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .category-parent {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background-color: var(--color-gray-100);
+        border-bottom: 1px solid var(--color-gray-300);
+    }
+    
+    .category-children {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .category-child {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--color-gray-200);
+    }
+    
+    .category-child:last-child {
+        border-bottom: none;
+    }
+    
+    .category-info {
+        flex: 1;
+    }
+    
+    .category-name {
+        margin: 0 0 4px 0;
+        font-weight: 600;
+    }
+    
+    .category-parent .category-name {
+        font-size: 1.125rem;
+    }
+    
+    .category-child .category-name {
+        font-size: 1rem;
+    }
+    
+    .category-meta {
+        font-size: 0.875rem;
+        color: var(--color-text-light);
+    }
+    
+    .category-slug {
+        font-family: monospace;
+        padding: 2px 6px;
+        background-color: var(--color-gray-200);
+        border-radius: 3px;
+    }
+    
+    .category-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .access-grid {
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .access-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 2fr;
+        border-bottom: 1px solid var(--color-gray-300);
+    }
+    
+    .access-row:last-child {
+        border-bottom: none;
+    }
+    
+    .access-header {
+        background-color: var(--color-gray-100);
+        font-weight: 600;
+    }
+    
+    .access-cell {
+        padding: 12px 16px;
+        border-right: 1px solid var(--color-gray-300);
+    }
+    
+    .access-cell:last-child {
+        border-right: none;
+    }
+    
+    code {
+        font-family: monospace;
+        padding: 2px 4px;
+        background-color: var(--color-gray-100);
+        border-radius: 3px;
+    }
+    
+    .mt-4 {
+        margin-top: 24px;
+    }
+    
+    .mb-4 {
+        margin-bottom: 16px;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--color-text-light);
+    }
+    
+    .empty-state svg {
+        margin: 0 auto 16px;
+        color: var(--color-gray-300);
+    }
+    
+    .mt-3 {
+        margin-top: 12px;
+    }
+    
+    @media (max-width: 768px) {
+        .access-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .access-cell {
+            border-right: none;
+            border-bottom: 1px solid var(--color-gray-300);
+        }
+        
+        .access-row:last-child .access-cell:last-child {
+            border-bottom: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle alert dismissals
+        const alertCloseButtons = document.querySelectorAll('.alert-close');
+        alertCloseButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const alert = this.closest('.alert');
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        });
+    });
+</script>
+{% endblock %}

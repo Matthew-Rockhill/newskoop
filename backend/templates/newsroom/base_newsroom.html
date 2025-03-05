@@ -1,0 +1,122 @@
+<!-- newsroom/templates/newsroom/base_newsroom.html -->
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'newsroom/css/newsroom.css' %}">
+{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar-nav">
+    <div class="nav-section">
+        <h3 class="nav-section-title">Content</h3>
+        <ul>
+            <li>
+                <a href="{% url 'newsroom:story_list' %}" class="{% if request.resolver_match.url_name == 'story_list' or request.resolver_match.url_name == 'story_detail' or request.resolver_match.url_name == 'story_create' or request.resolver_match.url_name == 'story_edit' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M7 7h10M7 12h10M7 17h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Stories
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'newsroom:bulletin_list' %}" class="{% if request.resolver_match.url_name == 'bulletin_list' or request.resolver_match.url_name == 'bulletin_detail' or request.resolver_match.url_name == 'bulletin_create' or request.resolver_match.url_name == 'bulletin_edit' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15 2H9a1 1 0 00-1 1v3a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 10h8M8 14h8M8 18h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Bulletins
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'newsroom:show_list' %}" class="{% if request.resolver_match.url_name == 'show_list' or request.resolver_match.url_name == 'show_detail' or request.resolver_match.url_name == 'show_create' or request.resolver_match.url_name == 'show_edit' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 8l6 4-6 4V8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Shows
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3 class="nav-section-title">Management</h3>
+        <ul>
+            <li>
+                <a href="{% url 'newsroom:my_tasks' %}" class="{% if request.resolver_match.url_name == 'my_tasks' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    My Tasks
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'newsroom:task_list' %}" class="{% if request.resolver_match.url_name == 'task_list' or request.resolver_match.url_name == 'task_detail' or request.resolver_match.url_name == 'task_create' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 4v16m-8-8h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    All Tasks
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'newsroom:translation_dashboard' %}" class="{% if request.resolver_match.url_name == 'translation_dashboard' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 5h12M10 5L7 17l-3-7m16-2l3 7-3-1m-.5-10L13 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Translation
+                </a>
+            </li>
+            {% if user.is_editor_or_above %}
+            <li>
+                <a href="{% url 'newsroom:category_list' %}" class="{% if request.resolver_match.url_name == 'category_list' or request.resolver_match.url_name == 'category_create' or request.resolver_match.url_name == 'category_edit' %}active{% endif %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 20h16a2 2 0 002-2V8a2 2 0 00-2-2h-7.93a2 2 0 01-1.66-.9l-.82-1.2A2 2 0 007.93 3H4a2 2 0 00-2 2v13c0 1.1.9 2 2 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Categories
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3 class="nav-section-title">Quick Links</h3>
+        <ul>
+            <li>
+                <a href="{% url 'newsroom:story_create' %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    New Story
+                </a>
+            </li>
+            {% if user.is_sub_editor_or_above %}
+            <li>
+                <a href="{% url 'newsroom:bulletin_create' %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    New Bulletin
+                </a>
+            </li>
+            {% endif %}
+            <li>
+                <a href="{% url 'newsroom:task_create' %}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    New Task
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'newsroom/js/newsroom.js' %}"></script>
+{% endblock %}
